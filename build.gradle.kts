@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("fabric-loom") version ("1.8.9") apply (false)
+    id("me.modmuss50.mod-publish-plugin") version ("0.8.1") apply (false)
 
     // Mixin config plugin is a subproject for creating lithium's settings from annotations in each mixin package.
     id("net.caffeinemc.mixin-config-plugin") version ("1.0-SNAPSHOT") apply (false)
@@ -35,6 +36,7 @@ tasks.jar {
 
 subprojects {
     apply(plugin = "maven-publish")
+    apply(plugin = "me.modmuss50.mod-publish-plugin")
 
     java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
@@ -87,5 +89,21 @@ subprojects {
     tasks.withType<AbstractArchiveTask>().configureEach {
         isReproducibleFileOrder = true
         isPreserveFileTimestamps = false
+    }
+}
+
+tasks.create("lithiumPublish") {
+    when (val platform = providers.environmentVariable("PLATFORM").orNull) {
+        "both" -> {
+            dependsOn(tasks.build, ":fabric:publishMods", ":neoforge:publishMods")
+        }
+        "fabric", "forge" -> {
+            dependsOn("${platform}:build", "${platform}:publish", "${platform}:publishMods")
+        }
+        else -> {
+            val isRelease = providers.environmentVariable("RELEASE_WORKFLOW").orNull;
+            if (isRelease != null && isRelease == "true")
+                throw IllegalStateException("Environment variable PLATFORM cannot be null when running on CI!")
+        }
     }
 }

@@ -1,3 +1,5 @@
+import me.modmuss50.mpp.ReleaseType
+
 plugins {
     id("idea")
     id("net.neoforged.moddev") version "2.0.42-beta"
@@ -181,4 +183,39 @@ tasks.named<net.caffeinemc.gradle.CreateMixinConfigTask>("neoforgeCreateMixinCon
 
 tasks.named("processResources") {
     dependsOn("neoforgeCreateMixinConfig")
+}
+
+publishMods {
+    displayName = "Lithium $MOD_VERSION for Neoforge"
+    version = "mc$MINECRAFT_VERSION-$MOD_VERSION-neoforge"
+    file = tasks.jar.get().archiveFile
+    changelog = rootProject.file("CHANGELOG.md").readText().split("----------")[1].trim()
+    type = getReleaseType()
+    modLoaders.add("neoforge")
+
+    modrinth {
+        accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
+        projectId = "360438"
+        minecraftVersions.add(MINECRAFT_VERSION)
+    }
+
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_API_KEY")
+        projectId = "gvQqBUqZ"
+        minecraftVersions.add(MINECRAFT_VERSION)
+    }
+}
+
+fun getReleaseType(): ReleaseType {
+    return when (val releaseType = providers.environmentVariable("RELEASE_TYPE").orNull) {
+        "alpha"-> ReleaseType.ALPHA
+        "beta" -> ReleaseType.BETA
+        "stable" -> ReleaseType.STABLE
+        else -> {
+            if (releaseType != null)
+                throw IllegalArgumentException("Release type must be alpha, beta or stable!")
+
+            ReleaseType.STABLE
+        }
+    }
 }

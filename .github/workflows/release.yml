@@ -1,0 +1,60 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        type: choice
+        description: Release Type
+        options:
+          - stable
+          - beta
+          - alpha
+      platform:
+        type: choice
+        description: Platform
+        options:
+          - both
+          - fabric
+          - neoforge
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+
+      - name: Loom Cache
+        uses: actions/cache@v4
+        with:
+          path: "**/.gradle/loom-cache"
+          key: "${{ runner.os }}-gradle-loom-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}"
+          restore-keys: "${{ runner.os }}-gradle-loom-"
+      - name: ModDevGradle Cache
+        uses: actions/cache@v4
+        with:
+          path: "**/.gradle/repositories"
+          key: "${{ runner.os }}-gradle-mdg-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}"
+          restore-keys: "${{ runner.os }}-gradle-mdg-"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-home-cache-cleanup: true
+          cache-read-only: true
+
+      - name: Validate Gradle Wrapper Integrity
+        uses: gradle/wrapper-validation-action@v2
+
+      - name: Build & Publish
+        env:
+          RELEASE_WORKFLOW: true
+          RELEASE_TYPE: ${{ inputs.releaseType }}
+          PLATFORM: ${{ inputs.platform }}
+          MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+        run: ./gradlew lithiumPublish
