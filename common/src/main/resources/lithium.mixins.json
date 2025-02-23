@@ -232,6 +232,7 @@
     "world.combined_heightmap_update.HeightmapAccessor",
     "world.combined_heightmap_update.LevelChunkMixin",
     "world.explosions.block_raycast.ServerExplosionMixin",
+    "world.explosions.entity_raycast.ServerExplosionMixin",
     "world.game_events.dispatch.GameEventDispatcherMixin",
     "world.game_events.dispatch.LevelChunkMixin",
     "world.inline_block_access.LevelChunkMixin",

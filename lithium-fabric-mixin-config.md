@@ -632,6 +632,10 @@ Various improvements to explosions.
 (default: `true`)  
 Various improvements to explosion block damage, e.g. not accessing blocks along an explosion ray multiple times
   
+### `mixin.world.explosions.entity_raycast`
+(default: `true`)  
+Various improvements to explosion entity damage, e.g. simplifying the raycasts.
+  
 ### `mixin.world.game_events`
 (default: `true`)  
 Various improvements to game events (vibrations) that are detected by allays, wardens and several sculk blocks.

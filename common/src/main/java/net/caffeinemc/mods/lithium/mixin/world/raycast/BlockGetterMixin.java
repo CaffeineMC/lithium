@@ -77,6 +77,9 @@ public interface BlockGetterMixin {
                 return d <= e ? blockHitResult : fluidHitResult;
             }
 
+            /**
+             * Modifications to this method should also be done in {@link net.caffeinemc.mods.lithium.mixin.world.explosions.entity_raycast.ServerExplosionMixin#blockHitFactory()}
+             */
             private BlockState getBlock(LevelReader world, BlockPos blockPos) {
                 if (world.isOutsideBuildHeight(blockPos.getY())) {
                     return Blocks.VOID_AIR.defaultBlockState();
