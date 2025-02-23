@@ -25,10 +25,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -46,6 +43,7 @@ import java.util.Optional;
 @Mixin(ServerExplosion.class)
 public abstract class ServerExplosionMixin {
 
+    @Unique
     private static final HashSet<?> DUMMY_HASHSET = new HashSet<>(0);
     @Shadow
     @Final
@@ -103,13 +101,14 @@ public abstract class ServerExplosionMixin {
         this.explodeAirBlocks = explodeAir;
     }
 
-//    @Redirect(
-//            method = "calculateExplodedPositions",
-//            at = @At(value = "NEW", target = "()Ljava/util/HashSet;", remap = false)
-//    )
-//    public HashSet<BlockPos> skipNewHashSet() {
-//        return null; //TODO this crashes
-//    }
+    @SuppressWarnings("unchecked")
+    @Redirect(
+            method = "calculateExplodedPositions",
+            at = @At(value = "NEW", target = "()Ljava/util/HashSet;", remap = false)
+    )
+    public HashSet<BlockPos> skipNewHashSet() {
+        return (HashSet<BlockPos>) DUMMY_HASHSET;
+    }
 
     @ModifyConstant(
             method = "calculateExplodedPositions",
