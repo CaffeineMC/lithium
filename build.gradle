@@ -1,13 +1,7 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    id 'fabric-loom' version '1.3-SNAPSHOT'
-
-    // Vineflower is a fork of the FernFlower decompiler which contains many enhancements and bug fixes, and generally
-    // produces much better source code. The Minecraft sources can be decompiled using it with the
-    // "genSourcesWithVineflower" task.
-    // (Note: Quiltflower was renamed to Vineflower in early July 2023.)
-    id 'io.github.juuxel.loom-vineflower' version '1.11.0'
+    id 'fabric-loom' version '1.9-SNAPSHOT'
 
     // This dependency is only used to determine the state of the Git working tree so that build artifacts can be
     // more easily identified. TODO: Lazily load GrGit via a service only when builds are performed.
