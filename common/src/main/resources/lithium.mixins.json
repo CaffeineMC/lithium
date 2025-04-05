@@ -250,6 +250,7 @@
     "debug.palette.ClientBoundLevelChunkPacketDataAccessor",
     "debug.palette.ClientPacketListenerMixin",
     "debug.palette.PalettedContainerMixin",
+    "experimental.entity.client_brain.LivingEntityMixin",
     "util.accessors.TransientEntitySectionManagerAccessor"
   ]
 }
