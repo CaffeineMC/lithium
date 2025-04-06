@@ -25,21 +25,21 @@ jobs:
             - name: Build with Gradle
               run: ./gradlew build
 
-            - name: Run Test Servers
-              timeout-minutes: 5
-              run: |
-                ./gradlew fabric:runGametestServer & FABRIC_PID=$!
-                ./gradlew neoforge:runGametestServer & NEOFORGE_PID=$!
-                wait $FABRIC_PID
-                FABRIC_EXIT_CODE=$?
-                wait $NEOFORGE_PID
-                NEOFORGE_EXIT_CODE=$?
-                if [ $FABRIC_EXIT_CODE -ne 0 ] || [ $NEOFORGE_EXIT_CODE -ne 0 ]; then
-                  exit 1
-                fi
-
             - name: Upload Build Artifacts
               uses: actions/upload-artifact@v4
               with:
                   name: build-artifacts
                   path: build/libs
+
+            - name: Run Tests
+              run: |
+                for server in fabric neoforge; do
+                  for experimental in true false; do
+                    echo "Running tests for server: $server, experimental: $experimental"
+                    if [ "$experimental" = "true" ]; then
+                      echo "mixin.experimental=true" > lithium.properties
+                    fi
+                    ./gradlew "$server:runGametestServer"
+                  done
+                done
+
