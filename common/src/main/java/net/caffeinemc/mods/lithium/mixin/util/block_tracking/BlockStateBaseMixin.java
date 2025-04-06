@@ -3,6 +3,7 @@ package net.caffeinemc.mods.lithium.mixin.util.block_tracking;
 import net.caffeinemc.mods.lithium.common.block.BlockStateFlagHolder;
 import net.caffeinemc.mods.lithium.common.block.BlockStateFlags;
 import net.caffeinemc.mods.lithium.common.block.TrackedBlockStatePredicate;
+import net.caffeinemc.mods.lithium.common.initialization.BlockInfoInitializer;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,8 +34,20 @@ public class BlockStateBaseMixin implements BlockStateFlagHolder {
     public int lithium$getAllFlags() {
         int blockStateFlags = this.flags;
         if (blockStateFlags == -1) {
-            throw new IllegalStateException("Tried to get uninitialized block state flags!");
+            blockStateFlags = this.handleUninitializedBlockStateFlags();
         }
         return blockStateFlags;
+    }
+
+    @Unique
+    private int handleUninitializedBlockStateFlags() {
+        if (!BlockStateFlags.ENABLED) {
+            throw new IllegalStateException("Tried to access block state flags even though the feature is disabled!");
+        }
+        BlockInfoInitializer.initializeBlockInfo();
+        if (this.flags == -1) {
+            throw new IllegalStateException("Could not initialize block state flags for " + this);
+        }
+        return this.flags;
     }
 }
