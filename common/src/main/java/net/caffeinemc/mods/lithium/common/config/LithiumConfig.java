@@ -220,6 +220,10 @@ public class LithiumConfig {
         return rule;
     }
 
+    public boolean isOptionEnabled(String optionName) {
+        return this.options.get(optionName).isEnabled();
+    }
+
     /**
      * Tests all dependencies and disables options when their dependencies are not met.
      */

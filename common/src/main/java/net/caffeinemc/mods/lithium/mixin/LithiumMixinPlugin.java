@@ -32,9 +32,9 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
         } catch (Exception e) {
             throw new RuntimeException("Could not load configuration file for Lithium", e);
         }
-
-        this.logger.info("Loaded configuration file for Lithium: {} options available, {} override(s) found",
-                CONFIG.getOptionCount(), CONFIG.getOptionOverrideCount());
+        String experimentalInfo = CONFIG.isOptionEnabled("mixin.experimental") ? " Experimental features are enabled!" : "";
+        this.logger.info("Loaded configuration file for Lithium: {} options available, {} override(s) found.{}",
+                CONFIG.getOptionCount(), CONFIG.getOptionOverrideCount(), experimentalInfo);
     }
 
     @Override
