@@ -3,7 +3,7 @@ import me.modmuss50.mpp.ReleaseType
 plugins {
     id("java")
     id("idea")
-    id("fabric-loom") version ("1.8.9")
+    id("fabric-loom") version ("1.10.1")
     id("net.caffeinemc.mixin-config-plugin") version ("1.0-SNAPSHOT")
 }
 
@@ -120,17 +120,19 @@ loom {
 
         create("gametestServer") {
             server()
-            name = "Game Test"
+            name = "Game Test Server"
             vmArg("-Dfabric-api.gametest")
-            runDir = "build/gametest"
+            runDir = "run/gametestServer"
             source(sourceSets["gametest"])
+            environmentVariable("LITHIUM_GAMETEST_RESOURCES", project(":common").file("src/gametest/resources/data").path)
         }
         create("gametestClient") {
             client()
             name = "Game Test Client"
             vmArg("-Dfabric-api.gametest")
-            runDir = "build/gametest"
+            runDir = "run/gametestClient"
             source(sourceSets["gametest"])
+            environmentVariable("LITHIUM_GAMETEST_RESOURCES", project(":common").file("src/gametest/resources/data").path)
         }
     }
 

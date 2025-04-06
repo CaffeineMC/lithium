@@ -97,7 +97,7 @@ neoForge {
         }
         create("gametestClient") {
             client()
-            gameDirectory.set(file("runs/gametestClient"))
+            gameDirectory.set(file("run/gametestClient"))
 
             sourceSet = sourceSets.getByName("gametest")
             systemProperty("neoforge.enabledGameTestNamespaces", "lithium-gametest")
@@ -105,7 +105,7 @@ neoForge {
         }
         create("gametestServer") {
             type = "gameTestServer"
-            gameDirectory.set(file("runs/gametestServer"))
+            gameDirectory.set(file("run/gametestServer"))
 
             sourceSet = sourceSets.getByName("gametest")
             systemProperty("neoforge.enabledGameTestNamespaces", "lithium-gametest")
