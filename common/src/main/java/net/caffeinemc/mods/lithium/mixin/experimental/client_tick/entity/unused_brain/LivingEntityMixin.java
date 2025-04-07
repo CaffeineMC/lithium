@@ -19,4 +19,14 @@ public class LivingEntityMixin {
         }
         return original.call(instance, dynamic);
     }
+
+    @WrapOperation(
+            method = "remove(Lnet/minecraft/world/entity/Entity$RemovalReason;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/ai/Brain;clearMemories()V")
+    )
+    private void clearMemoriesIfNotNull(Brain<?> instance, Operation<Void> original) {
+        if (instance != null) {
+            original.call(instance);
+        }
+    }
 }
