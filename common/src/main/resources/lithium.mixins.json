@@ -250,8 +250,14 @@
     "debug.palette.ClientBoundLevelChunkPacketDataAccessor",
     "debug.palette.ClientPacketListenerMixin",
     "debug.palette.PalettedContainerMixin",
-    "experimental.entity.client_brain.LivingEntityMixin",
-    "experimental.entity.client_brain.PathfinderMobMixin",
+    "experimental.client_tick.entity.base_tick.unused_ambient_sound.MobMixin",
+    "experimental.client_tick.entity.base_tick.unused_water_supply.AgeableWaterCreatureMixin",
+    "experimental.client_tick.entity.unused_brain.AllayMixin",
+    "experimental.client_tick.entity.unused_brain.LivingEntityMixin",
+    "experimental.client_tick.entity.unused_brain.MobMixin",
+    "experimental.client_tick.entity.unused_brain.PathfinderMobMixin",
+    "experimental.client_tick.particle.biome_particles.AmbientParticleSettingsMixin",
+    "experimental.client_tick.particle.biome_particles.ClientLevelMixin",
     "util.accessors.TransientEntitySectionManagerAccessor"
   ]
 }

@@ -340,6 +340,40 @@ Skips trying to create sprinting particles for all entities on the server side.
 (default: `false`)  
 Various experimental optimizations
   
+### `mixin.experimental.client_tick`
+(default: `true`)  
+Client-side only optimizations
+  
+### `mixin.experimental.client_tick.entity`
+(default: `true`)  
+Client-side only entity optimizations
+  
+### `mixin.experimental.client_tick.entity.base_tick`
+(default: `true`)  
+Client-side entity base tick optimizations
+  
+### `mixin.experimental.client_tick.entity.base_tick.unused_ambient_sound`
+(default: `true`)  
+Skip client-side server-only entity ambient sound play attempts
+  
+### `mixin.experimental.client_tick.entity.base_tick.unused_water_supply`
+(default: `true`)  
+Skip client-side breathing tick of water creatures
+  
+### `mixin.experimental.client_tick.entity.unused_brain`
+(default: `true`)  
+Skip creating brains for living entities on the client  
+Requirements:
+- `mixin.experimental.client_tick.entity.base_tick.unused_ambient_sound=true`  
+  
+### `mixin.experimental.client_tick.particle`
+(default: `true`)  
+Client-side only particle optimizations
+  
+### `mixin.experimental.client_tick.particle.biome_particles`
+(default: `true`)  
+Optimized client-side only biome particle spawning by checking the random chance before getting the biome
+  
 ### `mixin.experimental.entity`
 (default: `true`)  
 Experimental entity optimizations
@@ -371,10 +405,6 @@ Skip searching for fire or lava in the burn time countdown logic when they are n
 Use the block listening system to cache the entity suffocation check.  
 Requirements:
 - `mixin.util.block_tracking=true`  
-  
-### `mixin.experimental.entity.client_brain`
-(default: `true`)  
-Skip creating brains for living entities on the client.
   
 ### `mixin.experimental.entity.item_entity_merging`
 (default: `true`)  
