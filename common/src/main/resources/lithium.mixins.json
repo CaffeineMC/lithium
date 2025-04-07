@@ -251,6 +251,7 @@
     "debug.palette.ClientPacketListenerMixin",
     "debug.palette.PalettedContainerMixin",
     "experimental.entity.client_brain.LivingEntityMixin",
+    "experimental.entity.client_brain.PathfinderMobMixin",
     "util.accessors.TransientEntitySectionManagerAccessor"
   ]
 }
