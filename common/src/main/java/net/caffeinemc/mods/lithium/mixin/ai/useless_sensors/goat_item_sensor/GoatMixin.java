@@ -1,11 +1,9 @@
 package net.caffeinemc.mods.lithium.mixin.ai.useless_sensors.goat_item_sensor;
 
 import net.caffeinemc.mods.lithium.common.ai.brain.SensorHelper;
-import net.minecraft.SharedConstants;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.goat.Goat;
 import net.minecraft.world.level.Level;
@@ -30,10 +28,10 @@ public abstract class GoatMixin extends LivingEntity {
             at = @At("RETURN")
     )
     private void disableItemSensor(CallbackInfo ci) {
-        if (!this.getBrain().hasMemoryValue(MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM)) {
-            SensorHelper.disableSensor(this, SensorType.NEAREST_ITEMS);
-        } else if (SharedConstants.IS_RUNNING_IN_IDE) {
-            throw new IllegalStateException("Goat Entity has a nearest visible wanted item memory module! The mixin.ai.useless_sensors.goat_item_sensor should probably be removed permanently!");
+        if (this.level().isClientSide()) {
+            return;
         }
+        //NEAREST_VISIBLE_WANTED_ITEM is not used and is not save-able. Therefore, not creating it saves a bit of lag.
+        SensorHelper.disableSensor(this, SensorType.NEAREST_ITEMS);
     }
 }
