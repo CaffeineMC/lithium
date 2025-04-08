@@ -4,12 +4,13 @@ _LithiumVersion_ is automatically replaced with the lithium version, e.g. 0.14.5
 Everything above the line is ignored and not included in the changelog. Everything below will be in the
 changelog on GitHub, Modrinth and CurseForge.
 ----------
-Lithium _LithiumVersion_ for Minecraft _MCVersion_ fixes a client crash on neoforge and adds a new feature.
+Lithium _LithiumVersion_ for Minecraft _MCVersion_ fixes a few issues with experimental settings.
 
 Make sure to take a backup of your world before using the mod and please report any bugs and mod compatibility issues at the [issue tracker](https://github.com/CaffeineMC/lithium-fabric/issues). You can check the [description of each optimization](https://github.com/CaffeineMC/lithium/blob/_ReleaseTag_/lithium-mixin-config.md) and how to disable it when encountering a problem.
 
 ## Fixes
-- Neoforge client crash when joining a server
+- Fix various issues and mod compatibility problems with experimental client brain optimization
 
 ## Additions
-- Skip creating brains on the client side
+- Experimental client biome particle spawning optimization
+- Experimental client entity ticking optimizations
