@@ -3,7 +3,7 @@ import net.fabricmc.loom.task.RemapJarTask
 plugins {
     id("java")
     id("idea")
-    id("fabric-loom") version ("1.8.9")
+    id("fabric-loom") version ("1.10.1")
 }
 
 repositories {
