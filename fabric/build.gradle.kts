@@ -3,7 +3,7 @@ import me.modmuss50.mpp.ReleaseType
 plugins {
     id("java")
     id("idea")
-    id("fabric-loom") version ("1.8.9")
+    id("fabric-loom") version ("1.10.1")
     id("net.caffeinemc.mixin-config-plugin") version ("1.0-SNAPSHOT")
 }
 
