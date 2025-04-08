@@ -36,10 +36,8 @@ jobs:
                 for server in fabric neoforge; do
                   for experimental in true false; do
                     echo "Running tests for server: $server, experimental: $experimental"
-                    mkdir -p "$server/run/gametestServer/config"
-                    echo "" > "$server/run/gametestServer/config/lithium.properties"
                     if [ "$experimental" = "true" ]; then
-                      echo "mixin.experimental=true" > "$server"/run/gametestServer/config/lithium.properties
+                      echo "mixin.experimental=true" > lithium.properties
                     fi
                     ./gradlew "$server:runGametestServer"
                   done
