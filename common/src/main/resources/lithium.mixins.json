@@ -136,6 +136,7 @@
     "entity.replace_entitytype_predicates.LlamaFollowCaravanGoalMixin",
     "entity.replace_entitytype_predicates.OldMinecartBehaviorMixin",
     "entity.sprinting_particles.EntityMixin",
+    "experimental.client_tick.entity.unused_brain.BrainMixin",
     "experimental.entity.block_caching.EntityMixin",
     "experimental.entity.block_caching.block_support.EntityMixin",
     "experimental.entity.block_caching.block_touching.EntityMixin",
@@ -252,10 +253,7 @@
     "debug.palette.PalettedContainerMixin",
     "experimental.client_tick.entity.base_tick.unused_ambient_sound.MobMixin",
     "experimental.client_tick.entity.base_tick.unused_water_supply.AgeableWaterCreatureMixin",
-    "experimental.client_tick.entity.unused_brain.AllayMixin",
     "experimental.client_tick.entity.unused_brain.LivingEntityMixin",
-    "experimental.client_tick.entity.unused_brain.MobMixin",
-    "experimental.client_tick.entity.unused_brain.PathfinderMobMixin",
     "experimental.client_tick.particle.biome_particles.AmbientParticleSettingsMixin",
     "experimental.client_tick.particle.biome_particles.ClientLevelMixin",
     "util.accessors.TransientEntitySectionManagerAccessor"
