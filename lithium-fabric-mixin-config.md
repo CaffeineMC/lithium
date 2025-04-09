@@ -379,9 +379,7 @@ Skip client-side breathing tick of water creatures
   
 ### `mixin.experimental.client_tick.entity.unused_brain`
 (default: `true`)  
-Skip creating brains for living entities on the client  
-Requirements:
-- `mixin.experimental.client_tick.entity.base_tick.unused_ambient_sound=true`  
+Skip creating brains for living entities on the client
   
 ### `mixin.experimental.client_tick.particle`
 (default: `true`)  
