@@ -230,7 +230,7 @@ public abstract class FlowingFluidMixin {
 
             BlockState targetBlockState = getBlock(world, flowTargetPos, blockStateCache, blockIndex);
             //TODO use block cache in getUpdatedState
-            if (this.canMaybePassThrough(world, flowTargetPos, startState, flowDirection, flowTargetPos, targetBlockState, targetBlockState.getFluidState())) {
+            if (this.canMaybePassThrough(world, startPos, startState, flowDirection, flowTargetPos, targetBlockState, targetBlockState.getFluidState())) {
                 FluidState targetNewFluidState = this.getNewLiquid(world, flowTargetPos, targetBlockState);
                 if (canHoldSpecificFluid(world, flowTargetPos, targetBlockState, targetNewFluidState.getType())) {//Store the resulting fluid state for each direction, remove later if no closest hole access in this direction.
                     // 1.21.2+ Specialty: Only add the direction if the fluid can replace the other fluid. If it cannot, it still counts for the hole search though.
