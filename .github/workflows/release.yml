@@ -1,4 +1,6 @@
 name: Release GH+MR+CF
+permissions:
+  contents: write
 
 on:
   workflow_dispatch:
