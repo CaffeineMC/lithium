@@ -5,6 +5,7 @@ import me.jellysquid.mods.lithium.common.entity.block_tracking.ChunkSectionChang
 import me.jellysquid.mods.lithium.common.entity.block_tracking.SectionedBlockChangeTracker;
 import net.minecraft.block.BlockState;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registry;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.PalettedContainer;
 import org.spongepowered.asm.mixin.Final;
@@ -44,6 +45,26 @@ public abstract class ChunkSectionMixin implements BlockCountingSection, BlockLi
     }
 
     private void fastInitClientCounts() {
+        this.countsByFlag = new short[BlockStateFlags.NUM_TRACKED_FLAGS];
+        for (TrackedBlockStatePredicate trackedBlockStatePredicate : BlockStateFlags.TRACKED_FLAGS) {
+            if (this.blockStateContainer.hasAny(trackedBlockStatePredicate)) {
+                //We haven't counted, so we just set the count so high that it never incorrectly reaches 0.
+                //For most situations, this overestimation does not hurt client performance compared to correct counting,
+                this.countsByFlag[trackedBlockStatePredicate.getIndex()] = 16 * 16 * 16;
+            }
+        }
+    }
+
+    @Inject(
+            method = "<init>(Lnet/minecraft/registry/Registry;)V",
+            at = @At("RETURN")
+    )
+    private void initAirSection(Registry<?> registry, CallbackInfo ci) {
+        //Instead of initializing all flag counters to 0, initialize them correctly in case they accept air. The entire section should always be air here.
+
+        if (this.countsByFlag != null) {
+            throw new IllegalStateException("CountsByFlag already initialized!");
+        }
         this.countsByFlag = new short[BlockStateFlags.NUM_TRACKED_FLAGS];
         for (TrackedBlockStatePredicate trackedBlockStatePredicate : BlockStateFlags.TRACKED_FLAGS) {
             if (this.blockStateContainer.hasAny(trackedBlockStatePredicate)) {
