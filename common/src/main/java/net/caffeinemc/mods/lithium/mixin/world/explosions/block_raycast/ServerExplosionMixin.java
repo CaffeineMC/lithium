@@ -282,6 +282,9 @@ public abstract class ServerExplosionMixin {
                     }
                 }
             }
+            if (!this.explodeAirBlocks){ //returns early if this block is air unless this.exploseAirBlocks as air blocks normally don't explode, should skip some calls
+                return 0.09f; // 0.09 as (0.0 + 0.3) * 0.3 = 0.09, could be adjusted but avoids calling getBlockExplosionResistance on air
+            }
             blastResistance = this.damageCalculator.getBlockExplosionResistance((Explosion) (Object) this, this.level, pos, Blocks.AIR.defaultBlockState(), Fluids.EMPTY.defaultFluidState());
         }
         // Calculate how much this block will resist an explosion's ray
@@ -292,7 +295,7 @@ public abstract class ServerExplosionMixin {
         // Check if this ray is still strong enough to break blocks, and if so, add this position to the set
         // of positions to destroy
         float reducedStrength = strength - totalResistance;
-        if (reducedStrength > 0.0F && (this.explodeAirBlocks || !blockState.isAir())) {
+        if (reducedStrength > 0.0F) { //simpler if statement as it has already checked if it is air
             if (this.damageCalculator.shouldBlockExplode((Explosion) (Object) this, this.level, pos, blockState, reducedStrength)) {
                 touched.add(pos.asLong());
             }
