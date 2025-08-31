@@ -295,7 +295,7 @@ public abstract class ServerExplosionMixin {
         // Check if this ray is still strong enough to break blocks, and if so, add this position to the set
         // of positions to destroy
         float reducedStrength = strength - totalResistance;
-        if (reducedStrength > 0.0F) { //simpler if statement as it has already checked if it is air
+        if (reducedStrength > 0.0F) { //simpler if statement as it has already checked if it is air and if air is explodable
             if (this.damageCalculator.shouldBlockExplode((Explosion) (Object) this, this.level, pos, blockState, reducedStrength)) {
                 touched.add(pos.asLong());
             }
