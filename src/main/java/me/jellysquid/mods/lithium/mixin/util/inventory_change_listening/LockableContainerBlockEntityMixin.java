@@ -11,10 +11,13 @@ import me.jellysquid.mods.lithium.common.hopper.LithiumStackList;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.inventory.Inventory;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(LockableContainerBlockEntity.class)
 public abstract class LockableContainerBlockEntityMixin implements InventoryChangeEmitter, Inventory {
+    @Unique
     ReferenceArraySet<InventoryChangeListener> inventoryChangeListeners = null;
+    @Unique
     ReferenceArraySet<InventoryChangeListener> inventoryHandlingTypeListeners = null;
 
     @Override
@@ -31,11 +34,15 @@ public abstract class LockableContainerBlockEntityMixin implements InventoryChan
     @Override
     public void emitStackListReplaced() {
         ReferenceArraySet<InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
+        this.inventoryHandlingTypeListeners = null; //Prevent concurrent modification
         if (listeners != null && !listeners.isEmpty()) {
             for (InventoryChangeListener inventoryChangeListener : listeners) {
                 inventoryChangeListener.handleStackListReplaced(this);
             }
             listeners.clear();
+        }
+        if (this.inventoryHandlingTypeListeners == null) {
+            this.inventoryHandlingTypeListeners = listeners;
         }
 
         if (this instanceof InventoryChangeListener listener) {
@@ -48,11 +55,15 @@ public abstract class LockableContainerBlockEntityMixin implements InventoryChan
     @Override
     public void emitRemoved() {
         ReferenceArraySet<InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
+        this.inventoryHandlingTypeListeners = null; //Prevent concurrent modification
         if (listeners != null && !listeners.isEmpty()) {
             for (InventoryChangeListener listener : listeners) {
                 listener.handleInventoryRemoved(this);
             }
             listeners.clear();
+        }
+        if (this.inventoryHandlingTypeListeners == null) {
+            this.inventoryHandlingTypeListeners = listeners;
         }
 
         if (this instanceof InventoryChangeListener listener) {
@@ -62,6 +73,7 @@ public abstract class LockableContainerBlockEntityMixin implements InventoryChan
         this.invalidateChangeListening();
     }
 
+    @Unique
     private void invalidateChangeListening() {
         if (this.inventoryChangeListeners != null) {
             this.inventoryChangeListeners.clear();
