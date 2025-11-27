@@ -1,4 +1,6 @@
 name: release-artifacts
+permissions:
+    contents: write
 
 on:
   release:
