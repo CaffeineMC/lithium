@@ -25,6 +25,8 @@ bin/
 /run/
 /common/run/
 /fabric/run/
+/fabric/config/
+/fabric/logs/
 /neoforge/run/
 /neoforge/runs/
 

@@ -7,6 +7,10 @@
     "defaultRequire" : 1
   },
   "mixins" : [
+    "ai.non_poi_block_search.HoglinSpecificSensorMixin",
+    "ai.non_poi_block_search.MoveToBlockGoalMixin",
+    "ai.non_poi_block_search.PiglinSpecificSensorMixin",
+    "ai.non_poi_block_search.RemoveBlockGoalMixin",
     "ai.pathing.BlockStateBaseMixin",
     "ai.pathing.BootstrapMixin",
     "ai.pathing.FlyNodeEvaluatorMixin",
