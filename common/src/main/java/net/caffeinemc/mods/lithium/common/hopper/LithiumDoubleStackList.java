@@ -6,6 +6,7 @@ import net.minecraft.world.CompoundContainer;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class to allow DoubleInventory to have LithiumStackList optimizations.
@@ -142,5 +143,52 @@ public class LithiumDoubleStackList extends LithiumStackList {
     public void removeInventoryModificationCallback(@NotNull InventoryChangeTracker inventoryModificationCallback) {
         this.first.removeInventoryModificationCallback(inventoryModificationCallback);
         this.second.removeInventoryModificationCallback(inventoryModificationCallback);
+    }
+
+    @Override
+    public boolean hasSignalStrengthOverride() {
+        throw new UnsupportedOperationException("Call hasSignalStrengthOverride() on the inventory halves only!");
+    }
+
+    @Override
+    int calculateSignalStrength(int inventorySize) {
+        //Super call is fine here, since only correctly initialized fields are used
+        return super.calculateSignalStrength(inventorySize);
+    }
+
+    @Override
+    public boolean maybeSendsComparatorUpdatesOnFailedExtract() {
+        return this.first.maybeSendsComparatorUpdatesOnFailedExtract() || this.second.maybeSendsComparatorUpdatesOnFailedExtract();
+    }
+
+    @Override
+    public int getOccupiedSlots() {
+        return this.first.getOccupiedSlots() + this.second.getOccupiedSlots();
+    }
+
+    @Override
+    public int getFullSlots() {
+        return this.first.getFullSlots() + this.second.getFullSlots();
+    }
+
+    @Override
+    public void changedInteractionConditions() {
+        this.first.changedInteractionConditions();
+        this.second.changedInteractionConditions();
+    }
+
+    @Override
+    public void lithium$notify(@Nullable ItemStack publisher, int subscriberData) {
+        throw new UnsupportedOperationException("Call lithium$notify() on the inventory halves only!");
+    }
+
+    @Override
+    public void lithium$forceUnsubscribe(ItemStack publisher, int subscriberData) {
+        throw new UnsupportedOperationException("Call lithium$forceUnsubscribe() on the inventory halves only!");
+    }
+
+    @Override
+    public void lithium$notifyCount(ItemStack stack, int index, int newCount) {
+        throw new UnsupportedOperationException("Call lithium$notifyCount() on the inventory halves only!");
     }
 }
