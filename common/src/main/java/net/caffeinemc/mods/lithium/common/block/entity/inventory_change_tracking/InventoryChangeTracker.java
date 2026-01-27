@@ -4,7 +4,7 @@ import net.caffeinemc.mods.lithium.common.hopper.LithiumStackList;
 
 public interface InventoryChangeTracker extends InventoryChangeEmitter {
     default void listenForContentChangesOnce(LithiumStackList stackList, InventoryChangeListener inventoryChangeListener) {
-        this.lithium$forwardContentChangeOnce(inventoryChangeListener, stackList, this);
+        this.lithium$forwardContentChangeOnce(inventoryChangeListener, stackList);
     }
 
     default void listenForMajorInventoryChanges(InventoryChangeListener inventoryChangeListener) {

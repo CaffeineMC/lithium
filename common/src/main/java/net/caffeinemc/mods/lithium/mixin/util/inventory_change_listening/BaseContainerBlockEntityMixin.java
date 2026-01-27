@@ -94,11 +94,11 @@ public abstract class BaseContainerBlockEntityMixin implements InventoryChangeEm
     }
 
     @Override
-    public void lithium$forwardContentChangeOnce(InventoryChangeListener inventoryChangeListener, LithiumStackList stackList, InventoryChangeTracker thisTracker) {
+    public void lithium$forwardContentChangeOnce(InventoryChangeListener inventoryChangeListener, LithiumStackList stackList) {
         if (this.inventoryChangeListeners == null) {
             this.inventoryChangeListeners = new ReferenceArraySet<>(1);
         }
-        stackList.setInventoryModificationCallback(thisTracker);
+        stackList.setNextInventoryModificationCallback((InventoryChangeTracker) this);
         this.inventoryChangeListeners.add(inventoryChangeListener);
 
     }

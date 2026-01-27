@@ -113,13 +113,15 @@ public class LithiumDoubleInventory extends CompoundContainer implements Lithium
     }
 
     @Override
-    public void lithium$forwardContentChangeOnce(InventoryChangeListener inventoryChangeListener, LithiumStackList stackList, InventoryChangeTracker thisTracker) {
+    public void lithium$forwardContentChangeOnce(InventoryChangeListener inventoryChangeListener, LithiumStackList stackList) {
         if (this.inventoryChangeListeners == null) {
             this.inventoryChangeListeners = new ReferenceOpenHashSet<>(1);
         }
-        stackList.setInventoryModificationCallback(thisTracker);
+        if (this.inventoryChangeListeners.isEmpty()) {
+            ((InventoryChangeTracker) this.first).listenForContentChangesOnce(InventoryHelper.getLithiumStackList(this.first), this);
+            ((InventoryChangeTracker) this.second).listenForContentChangesOnce(InventoryHelper.getLithiumStackList(this.second), this);
+        }
         this.inventoryChangeListeners.add(inventoryChangeListener);
-
     }
 
     @Override

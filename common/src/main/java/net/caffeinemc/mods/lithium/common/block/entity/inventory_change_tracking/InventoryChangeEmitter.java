@@ -18,7 +18,7 @@ public interface InventoryChangeEmitter {
 
     void lithium$emitFirstComparatorAdded();
 
-    void lithium$forwardContentChangeOnce(InventoryChangeListener inventoryChangeListener, LithiumStackList stackList, InventoryChangeTracker thisTracker);
+    void lithium$forwardContentChangeOnce(InventoryChangeListener inventoryChangeListener, LithiumStackList stackList);
 
     void lithium$forwardMajorInventoryChanges(InventoryChangeListener inventoryChangeListener);
 
