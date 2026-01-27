@@ -732,10 +732,17 @@ public abstract class HopperBlockEntityMixin extends BlockEntity implements Hopp
                         Container blockInventory = this.extractBlockInventory;
                         if (this.extractStackList != null &&
                                 blockInventory instanceof InventoryChangeTracker) {
-                            if (!this.extractStackList.maybeSendsComparatorUpdatesOnFailedExtract() || (blockInventory instanceof ComparatorTracker comparatorTracker && !comparatorTracker.lithium$hasAnyComparatorNearby())) {
-                                listenToExtractTracker = true;
+                            if (this.extractStackList.maybeSendsComparatorUpdatesOnFailedExtract() && this.extractStackList.getOccupiedSlots() != 0) {
+                                if (blockInventory instanceof ComparatorTracker comparatorTracker && !comparatorTracker.lithium$hasAnyComparatorNearby()) {
+                                    listenToExtractTracker = true;
+                                } else {
+                                    //Inventory is not empty (0 != number of occupied slots) and maybe sends comparator
+                                    // updates on failed extract attempts, so hopper must not sleep to be able to send
+                                    // the observable comparator updates.
+                                    return;
+                                }
                             } else {
-                                return;
+                                listenToExtractTracker = true;
                             }
                         } else {
                             return;
