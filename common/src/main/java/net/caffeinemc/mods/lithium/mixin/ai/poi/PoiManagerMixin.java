@@ -8,6 +8,7 @@ import net.caffeinemc.mods.lithium.common.world.interests.PointOfInterestSetExte
 import net.caffeinemc.mods.lithium.common.world.interests.PointOfInterestStorageExtended;
 import net.caffeinemc.mods.lithium.common.world.interests.RegionBasedStorageSectionExtended;
 import net.caffeinemc.mods.lithium.common.world.interests.iterator.NearbyPointOfInterestStream;
+import net.caffeinemc.mods.lithium.common.world.interests.iterator.SingleChunkPointOfInterestStream;
 import net.caffeinemc.mods.lithium.common.world.interests.iterator.SinglePointOfInterestTypeFilter;
 import net.caffeinemc.mods.lithium.common.world.interests.iterator.SphereChunkOrderedPoiSetSpliterator;
 import net.minecraft.core.BlockPos;
@@ -15,10 +16,12 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.VisibleForDebug;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.entity.ai.village.poi.PoiSection;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.chunk.storage.ChunkIOErrorReporter;
@@ -238,6 +241,16 @@ public abstract class PoiManagerMixin extends SectionStorage<PoiSection, PoiSect
     @Overwrite
     public Stream<PoiRecord> getInRange(Predicate<Holder<PoiType>> predicate, BlockPos center, int radius, PoiManager.Occupancy status) {
         return StreamSupport.stream(new SphereChunkOrderedPoiSetSpliterator(radius, center, this, predicate, status), false);
+    }
+
+    /**
+     * @author jcw780
+     * @reason Fall back to column checked accesses in case POI search is otherwise unoptimized
+     */
+    @VisibleForDebug
+    @Overwrite
+    public Stream<PoiRecord> getInChunk(Predicate<Holder<PoiType>> predicate, ChunkPos chunkPos, PoiManager.Occupancy occupancy) {
+        return StreamSupport.stream(new SingleChunkPointOfInterestStream(predicate, chunkPos, occupancy, this), false);
     }
 
     @Override
