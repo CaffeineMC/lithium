@@ -4,13 +4,12 @@ _LithiumVersion_ is automatically replaced with the lithium version, e.g. 0.14.5
 Everything above the line is ignored and not included in the changelog. Everything below will be in the
 changelog on GitHub, Modrinth and CurseForge.
 ----------
-Lithium _LithiumVersion_ for Minecraft _MCVersion_ backports several bug fixes, including better compatibility with neoforge.
+Lithium _LithiumVersion_ for Minecraft _MCVersion_ backports an optimization and bug fixes.
 
 Make sure to take a backup of your world before using the mod and please report any bugs and mod compatibility issues at the [issue tracker](https://github.com/CaffeineMC/lithium-fabric/issues). You can check the [description of each optimization](https://github.com/CaffeineMC/lithium/blob/_ReleaseTag_/lithium-mixin-config.md) and how to disable it when encountering a problem.
 
+## Additions
+- Optimize non POI block searches (Thanks to jcw780)
+
 ## Fixes
-- Fix missing initialization of block counting in empty sections
-- Mod compatibility between raycast optimization and ponder
-- Fix NeoForge chunk load tricks compatibility
-- Fix double inventory invalidation in hopper optimization
-- Hoppers unsubscribe from block entities and double inventories when invalidated
+- Fix incorrect hopper sleeping with double chests halves read by comparators 
