@@ -12,6 +12,7 @@ import net.minecraft.world.level.chunk.MissingPaletteEntryException;
 import net.minecraft.world.level.chunk.Palette;
 import net.minecraft.world.level.chunk.PaletteResize;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -121,6 +122,28 @@ public class LithiumHashPalette<T> implements Palette<T> {
 
     @Override
     public @NotNull T valueFor(int id) {
+        T[] entries = this.entries;
+
+        T entry = null;
+        if (id >= 0 && id < entries.length) {
+            entry = entries[id];
+        }
+
+        if (entry != null) {
+            return entry;
+        } else {
+            return recoverMissingPaletteEntryOrCrash(id);
+        }
+    }
+
+    private @NonNull T recoverMissingPaletteEntryOrCrash(int id) {
+        // Try to reduce the number of crashes which are caused by an unknown data race
+        // by retrying after a short sleep. This is only a semi-correct last resort before crashing!
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException ignored) {
+
+        }
         T[] entries = this.entries;
 
         T entry = null;
