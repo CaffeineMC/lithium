@@ -291,9 +291,10 @@ public abstract class FlowingFluidMixin {
 
     @Unique
     private boolean isHoleBelow(LevelReader world, Byte2BooleanOpenHashMap holeCache, byte key, BlockPos flowTargetPos, BlockState targetBlockState) {
-        if (holeCache.get(key)) {
-            return true;
+        if (holeCache.containsKey(key)) {
+            return holeCache.get(key);
         }
+
         BlockPos downPos = flowTargetPos.below();
         BlockState downBlock = world.getBlockState(downPos);
         boolean holeFound = this.isWaterHole(world, this.getFlowing(), flowTargetPos, targetBlockState, downPos, downBlock);
