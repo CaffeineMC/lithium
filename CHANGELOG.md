@@ -4,12 +4,13 @@ _LithiumVersion_ is automatically replaced with the lithium version, e.g. 0.14.5
 Everything above the line is ignored and not included in the changelog. Everything below will be in the
 changelog on GitHub, Modrinth and CurseForge.
 ----------
-Lithium _LithiumVersion_ for Minecraft 1.21 and 1.21.1 backports an optimization and bug fixes.
+Lithium _LithiumVersion_ for Minecraft 1.21 and 1.21.1 backports an optimization and a bug fix.
 
 Make sure to take a backup of your world before using the mod and please report any bugs and mod compatibility issues at the [issue tracker](https://github.com/CaffeineMC/lithium-fabric/issues). You can check the [description of each optimization](https://github.com/CaffeineMC/lithium/blob/_ReleaseTag_/lithium-mixin-config.md) and how to disable it when encountering a problem.
 
 ## Additions
-- Optimize non POI block searches (Thanks to jcw780)
+- Add missing palette crash recovery attempt
+- Use cached false values for fluid hole search
 
 ## Fixes
-- Fix incorrect hopper sleeping with double chests halves read by comparators 
+- Fix negative indices caused by byte to int cast (crash with modded fluids https://github.com/CaffeineMC/lithium/issues/719)
