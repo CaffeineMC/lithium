@@ -250,7 +250,7 @@ public class NearbyPointOfInterestStream extends Spliterators.AbstractSpliterato
             while (!this.isSectionListEmpty() && this.minCollectedElementDistanceSq >= this.getMinimumNextPotentialDistanceSq()) {
                 final long sectionPos = queuedPOISections.get(this.queuedSectionsSearched++).sectionPos;
                 this.nextSectionDistanceSq = this.getNextSectionDistanceSq();
-                final Optional<PoiSection> poiSection = this.storage.lithium$getElementAt(sectionPos);
+                final Optional<PoiSection> poiSection = this.storage.lithium$uncheckedGetElementAt(sectionPos);
                 //noinspection OptionalIsPresent
                 if (poiSection.isPresent()) {
                     ((PointOfInterestSetExtended) poiSection.get()).lithium$collectMatchingPoints(this.typeSelector, this.occupationStatus, this);

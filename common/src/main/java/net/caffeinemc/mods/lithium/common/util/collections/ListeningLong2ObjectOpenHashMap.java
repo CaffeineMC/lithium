@@ -40,6 +40,13 @@ public class ListeningLong2ObjectOpenHashMap<V> extends Long2ObjectOpenHashMap<V
         return ret;
     }
 
+    /**
+     * Only use this if you are sure you are replicating the intended listening effect
+     */
+    public V removeSilently(long k) {
+        return super.remove(k);
+    }
+
     public interface Callback<V> {
         void apply(long key, V value);
     }

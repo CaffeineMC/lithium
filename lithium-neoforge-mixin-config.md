@@ -43,6 +43,20 @@ Portal search uses the faster POI search and optimized loaded state caching
 Non-vanilla behavior:
   Lithium portal search skips unnecessarily accessing the block/chunk of some portal POIs. This causes fewer chunks to be border loaded for a single game tick, which might affect entity cannons that shoot through/into these chunks in that game tick.
   
+### `mixin.ai.poi.reduce_poi_memory`
+(default: `true`)  
+Reduce memory consumption of POI system
+  
+### `mixin.ai.poi.reduce_poi_memory.check_consistency_with_blocks`
+(default: `true`)  
+Optimize checkConsistencyWithBlocks when using reduce_poi_memory optimizations
+  
+### `mixin.ai.poi.reduce_poi_memory.poi_unloading`
+(default: `true`)  
+Unload non-portal forced POIs.  
+Requirements:
+- `mixin.ai.poi.fast_portals=true`  
+  
 ### `mixin.ai.poi.tasks`
 (default: `true`)  
 Mob Tasks which search for POIs use the optimized POI search
