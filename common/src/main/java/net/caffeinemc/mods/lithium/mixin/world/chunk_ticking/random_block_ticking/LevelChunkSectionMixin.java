@@ -40,12 +40,11 @@ public abstract class LevelChunkSectionMixin implements LithiumSectionData {
             throw new IllegalStateException("RandomTickableBlocksByY already initialized!");
         }
         sectionData.setRandomTickableBlocksByY(new byte[RandomTickingSectionDataHelper.BYTE_COUNT]);
-        if (this.states.maybeHas(BlockStateFlags.RANDOM_TICKING)) { //In case air is random tickable, initialize the counts to all set
-            byte[] randomTickableBlocksByY = sectionData.getRandomTickableBlocksByY();
-            for (int i = 0, numBlocks = 4096; i < randomTickableBlocksByY.length; i++) {
-                randomTickableBlocksByY[i] = (byte) Math.min(RandomTickingSectionDataHelper.MINISECTION_SIZE, numBlocks);
-                numBlocks -= randomTickableBlocksByY[i];
-            }
+        //In case air is random tickable, initialize the counts to all set
+        if (this.states.maybeHas(BlockStateFlags.RANDOM_TICKING)) {
+            RandomTickingSectionDataHelper.initDataForAllRandomTickingSection(sectionData);
+        } else {
+            RandomTickingSectionDataHelper.initNonRandomTickingSection(sectionData);
         }
     }
 

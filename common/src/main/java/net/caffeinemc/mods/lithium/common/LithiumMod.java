@@ -8,6 +8,8 @@ public class LithiumMod {
 
     private static String MOD_VERSION;
 
+    private static final boolean DEBUG = false;
+
     public static void onInitialization(String version) {
         MOD_VERSION = version;
     }
