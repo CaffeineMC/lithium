@@ -146,6 +146,8 @@
     "entity.replace_entitytype_predicates.OldMinecartBehaviorMixin",
     "entity.sprinting_particles.EntityMixin",
     "experimental.client_tick.entity.unused_brain.BrainMixin",
+    "experimental.client_tick.entity.unused_brain.CopperGolemMixin",
+    "experimental.client_tick.entity.unused_brain.MemorySlotMixin",
     "experimental.entity.block_caching.EntityMixin",
     "experimental.entity.block_caching.block_support.EntityMixin",
     "experimental.entity.block_caching.suffocation.EntityMixin",
