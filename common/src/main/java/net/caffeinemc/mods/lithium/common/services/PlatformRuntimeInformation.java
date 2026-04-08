@@ -30,11 +30,6 @@ public interface PlatformRuntimeInformation {
     boolean platformHasEarlyLoadingScreen();
 
     /**
-     * Returns if the platform uses refmaps.
-     */
-    boolean platformUsesRefmap();
-
-    /**
      * Returns if a mod is in the mods folder during loading.
      */
     boolean isModInLoadingList(String modId);

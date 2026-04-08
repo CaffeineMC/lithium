@@ -29,11 +29,6 @@ public class NeoForgeRuntimeInformation implements PlatformRuntimeInformation {
     }
 
     @Override
-    public boolean platformUsesRefmap() {
-        return false;
-    }
-
-    @Override
     public boolean isModInLoadingList(String modId) {
         return FMLLoader.getCurrent().getLoadingModList().getModFileById(modId) != null;
     }

@@ -2,7 +2,6 @@ package net.caffeinemc.mods.lithium.mixin;
 
 import net.caffeinemc.mods.lithium.common.config.LithiumConfig;
 import net.caffeinemc.mods.lithium.common.config.Option;
-import net.caffeinemc.mods.lithium.common.services.PlatformRuntimeInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.tree.ClassNode;
@@ -39,7 +38,7 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public String getRefMapperConfig() {
-        return PlatformRuntimeInformation.getInstance().platformUsesRefmap() ? "lithium.refmap.json" : null;
+        return null;
     }
 
     @Override

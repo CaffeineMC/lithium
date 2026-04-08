@@ -66,9 +66,7 @@ tasks.jar {
     from(api.output.resourcesDir)
 
     val main = project.project(":common").sourceSets.getByName("main")
-    from(main.output.classesDirs) {
-        exclude("/lithium.refmap.json")
-    }
+
     from(main.output.resourcesDir)
 
     from(rootDir.resolve("LICENSE.md"))

@@ -99,7 +99,6 @@ tasks.named("build") {
 
 loom {
     mixin {
-        defaultRefmapName = "lithium.refmap.json"
         useLegacyMixinAp = false
     }
 

@@ -27,11 +27,6 @@ public class FabricRuntimeInformation implements PlatformRuntimeInformation {
     }
 
     @Override
-    public boolean platformUsesRefmap() {
-        return false;
-    }
-
-    @Override
     public boolean isModInLoadingList(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
