@@ -7,16 +7,16 @@ plugins {
 
 // Fabric: https://fabricmc.net/develop/
 // Neoforge: https://neoforged.net/
-val MINECRAFT_VERSION by extra { "26.1.1" } //MUST manually update fabric.mod.json and neoforge.mods.toml
+val MINECRAFT_VERSION by extra { "26.1.2" } //MUST manually update fabric.mod.json and neoforge.mods.toml
 val NEOFORGE_VERSION by extra { "26.1.1.0-beta" }
 val FABRIC_LOADER_VERSION by extra { "0.18.6" }
-val FABRIC_API_VERSION by extra { "0.145.2+26.1.1" }
+val FABRIC_API_VERSION by extra { "0.145.4+26.1.2" }
 
 // This value can be set to null to disable Parchment.
 val PARCHMENT_VERSION by extra { null }
 
 // https://semver.org/
-val MOD_VERSION by extra { "0.23.0" }
+val MOD_VERSION by extra { "0.24.0" }
 
 allprojects {
     apply(plugin = "java")

@@ -10,5 +10,5 @@ Make sure to take a backup of your world before using the mod and please report 
 
 It is highly recommended to update from the previous release.
 
-## Changes
-- Switch to 26.1.1
+## Fixes
+- Crash with experimental client brain optimization
