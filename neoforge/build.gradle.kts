@@ -66,7 +66,7 @@ tasks.jar {
     from(api.output.resourcesDir)
 
     val main = project.project(":common").sourceSets.getByName("main")
-
+    from(main.output.classesDirs)
     from(main.output.resourcesDir)
 
     from(rootDir.resolve("LICENSE.md"))
