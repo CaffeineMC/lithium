@@ -10,13 +10,13 @@ repositories {
 }
 
 
-val MINECRAFT_VERSION: String by rootProject.extra
+val MINECRAFT_COMPILE_VERSION: String by rootProject.extra
 val PARCHMENT_VERSION: String? by rootProject.extra
 val FABRIC_LOADER_VERSION: String by rootProject.extra
 val FABRIC_API_VERSION: String by rootProject.extra
 
 dependencies {
-    minecraft(group = "com.mojang", name = "minecraft", version = MINECRAFT_VERSION)
+    minecraft(group = "com.mojang", name = "minecraft", version = MINECRAFT_COMPILE_VERSION)
     compileOnly("net.fabricmc:fabric-loader:$FABRIC_LOADER_VERSION")
 
     fun addDependentFabricModule(name: String) {

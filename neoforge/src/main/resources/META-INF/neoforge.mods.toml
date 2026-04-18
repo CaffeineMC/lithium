@@ -23,7 +23,7 @@ Lithium is a free and open-source optimization mod for Minecraft which makes a w
 [[dependencies.lithium]]
 modId = "minecraft"
 type = "required"
-versionRange = "26.1.2"
+versionRange = "${mc_version_dependency}"
 ordering = "NONE"
 side = "BOTH"
 

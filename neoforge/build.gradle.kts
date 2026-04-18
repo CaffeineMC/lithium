@@ -7,9 +7,13 @@ plugins {
     id("net.caffeinemc.mixin-config-plugin") version ("1.0-SNAPSHOT")
 }
 
-val MINECRAFT_VERSION: String by rootProject.extra
-val PARCHMENT_VERSION: String? by rootProject.extra
+val MINECRAFT_COMPILE_VERSION: String by rootProject.extra
+val MC_DISPLAY_VERSION: String by rootProject.extra
+val MC_SUPPORTED_RANGE_NEOFORGE: String by rootProject.extra
+val MC_PUBLISHING_MIN_VERSION: String by rootProject.extra
+val MC_PUBLISHING_MAX_VERSION: String by rootProject.extra
 val NEOFORGE_VERSION: String by rootProject.extra
+val PARCHMENT_VERSION: String? by rootProject.extra
 val MOD_VERSION: String by rootProject.extra
 
 base {
@@ -60,6 +64,15 @@ repositories {
     }
 }
 
+tasks.processResources {
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand(mapOf(
+                "version" to MOD_VERSION,
+                "mc_version_dependency" to MC_SUPPORTED_RANGE_NEOFORGE
+        ))
+    }
+}
+
 tasks.jar {
     val api = project.project(":common").sourceSets.getByName("api")
     from(api.output.classesDirs)
@@ -72,10 +85,6 @@ tasks.jar {
     }
 
     from(rootDir.resolve("LICENSE.md"))
-
-    filesMatching("neoforge.mods.toml") {
-        expand(mapOf("version" to MOD_VERSION))
-    }
 }
 
 tasks.jar.get().destinationDirectory = rootDir.resolve("build").resolve("libs")
@@ -86,7 +95,7 @@ neoForge {
 
     if (PARCHMENT_VERSION != null) {
         parchment {
-            minecraftVersion = MINECRAFT_VERSION
+            minecraftVersion = MINECRAFT_COMPILE_VERSION
             mappingsVersion = PARCHMENT_VERSION
         }
     }
@@ -189,8 +198,9 @@ tasks.named("processResources") {
 }
 
 publishMods {
-    val mcVersionLithiumVersion = "mc$MINECRAFT_VERSION-$MOD_VERSION"
-    version = "$mcVersionLithiumVersion-neoforge"
+    val mcDisplayVersionLithiumVersion = "mc$MC_DISPLAY_VERSION-$MOD_VERSION"
+    val mcCompileVersionLithiumVersion = "mc$MINECRAFT_COMPILE_VERSION-$MOD_VERSION"
+    version = "$mcCompileVersionLithiumVersion-neoforge"
     file = tasks.jar.get().archiveFile
     changelog = rootProject.file("CHANGELOG.md").readText().trim()
     type = getReleaseType()
@@ -199,14 +209,20 @@ publishMods {
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
         projectId = "360438"
-        minecraftVersions.add(MINECRAFT_VERSION)
-        displayName = "Lithium $mcVersionLithiumVersion for Neoforge"
+        minecraftVersionRange {
+            start = "$MC_PUBLISHING_MIN_VERSION"
+            end = "$MC_PUBLISHING_MAX_VERSION"
+        }
+        displayName = "Lithium $mcDisplayVersionLithiumVersion for Neoforge"
     }
 
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_API_KEY")
         projectId = "gvQqBUqZ"
-        minecraftVersions.add(MINECRAFT_VERSION)
+        minecraftVersionRange {
+            start = "$MC_PUBLISHING_MIN_VERSION"
+            end = "$MC_PUBLISHING_MAX_VERSION"
+        }
         displayName = "Lithium $MOD_VERSION for Neoforge"
     }
 }

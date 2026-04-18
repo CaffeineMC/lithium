@@ -54,24 +54,25 @@ jobs:
 
       - name: Set environment variables for the script below
         run: |
-          echo "MINECRAFT_VERSION=$(./gradlew -q printMinecraftVersion)" >> $GITHUB_ENV
+          echo "MINECRAFT_COMPILE_VERSION=$(./gradlew -q printMinecraftVersion)" >> $GITHUB_ENV
+          echo "MINECRAFT_DISPLAY_VERSION=$(./gradlew -q printMinecraftDisplayVersion)" >> $GITHUB_ENV
           echo "MOD_VERSION=$(./gradlew -q printModVersion)" >> $GITHUB_ENV
 
       - name: Set Release Name
         id: set_release_name
         run: |
           if [ "${{ inputs.platform }}" == "both" ]; then
-            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft $MINECRAFT_VERSION Fabric and Neoforge" >> $GITHUB_ENV
+            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft MINECRAFT_DISPLAY_VERSION Fabric and Neoforge" >> $GITHUB_ENV
           elif [ "${{ inputs.platform }}" == "fabric" ]; then
-            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft $MINECRAFT_VERSION Fabric" >> $GITHUB_ENV
+            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft MINECRAFT_DISPLAY_VERSION Fabric" >> $GITHUB_ENV
           elif [ "${{ inputs.platform }}" == "neoforge" ]; then
-            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft $MINECRAFT_VERSION Neoforge" >> $GITHUB_ENV
+            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft MINECRAFT_DISPLAY_VERSION Neoforge" >> $GITHUB_ENV
           fi
 
       - name: Replace placeholders in CHANGELOG.md
         run: |
-          sed -i 's/_ReleaseTag_/mc${{ env.MINECRAFT_VERSION }}-${{ env.MOD_VERSION }}/g' CHANGELOG.md
-          sed -i 's/_MCVersion_/${{ env.MINECRAFT_VERSION }}/g' CHANGELOG.md
+          sed -i 's/_ReleaseTag_/mc${{ env.MINECRAFT_COMPILE_VERSION }}-${{ env.MOD_VERSION }}/g' CHANGELOG.md
+          sed -i 's/_MCVersion_/${{ env.MINECRAFT_DISPLAY_VERSION }}/g' CHANGELOG.md
           sed -i 's/_LithiumVersion_/${{ env.MOD_VERSION }}/g' CHANGELOG.md     
 
       - name: Trim CHANGELOG.md
@@ -83,7 +84,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create mc${{ env.MINECRAFT_VERSION }}-${{ env.MOD_VERSION }} \
+          gh release create mc${{ env.MINECRAFT_COMPILE_VERSION }}-${{ env.MOD_VERSION }} \
             --title="${{ env.RELEASE_NAME }}" \
             --notes-file=CHANGELOG.md \
             --target=${{ github.ref_name }} \

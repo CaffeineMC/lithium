@@ -7,10 +7,14 @@ plugins {
     id("net.caffeinemc.mixin-config-plugin") version ("1.0-SNAPSHOT")
 }
 
-val MINECRAFT_VERSION: String by rootProject.extra
-val PARCHMENT_VERSION: String? by rootProject.extra
+val MINECRAFT_COMPILE_VERSION: String by rootProject.extra
+val MC_DISPLAY_VERSION: String by rootProject.extra
+val MC_SUPPORTED_RANGE_FABRIC: String by rootProject.extra
+val MC_PUBLISHING_MIN_VERSION: String by rootProject.extra
+val MC_PUBLISHING_MAX_VERSION: String by rootProject.extra
 val FABRIC_LOADER_VERSION: String by rootProject.extra
 val FABRIC_API_VERSION: String by rootProject.extra
+val PARCHMENT_VERSION: String? by rootProject.extra
 val MOD_VERSION: String by rootProject.extra
 
 base {
@@ -38,7 +42,7 @@ afterEvaluate {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${MINECRAFT_VERSION}")
+    minecraft("com.mojang:minecraft:${MINECRAFT_COMPILE_VERSION}")
     implementation("net.fabricmc:fabric-loader:$FABRIC_LOADER_VERSION")
 
     fun addEmbeddedFabricModule(name: String) {
@@ -173,7 +177,10 @@ tasks {
         inputs.property("version", project.version)
 
         filesMatching("fabric.mod.json") {
-            expand(mapOf("version" to project.version))
+            expand(mapOf(
+                    "version" to project.version,
+                    "mc_version_dependency" to MC_SUPPORTED_RANGE_FABRIC
+            ))
         }
     }
 
@@ -223,8 +230,9 @@ tasks.named("processResources") {
 }
 
 publishMods {
-    val mcVersionLithiumVersion = "mc$MINECRAFT_VERSION-$MOD_VERSION"
-    version = "$mcVersionLithiumVersion-fabric"
+    val mcDisplayVersionLithiumVersion = "mc$MC_DISPLAY_VERSION-$MOD_VERSION"
+    val mcCompileVersionLithiumVersion = "mc$MINECRAFT_COMPILE_VERSION-$MOD_VERSION"
+    version = "$mcCompileVersionLithiumVersion-fabric"
     file = tasks.jar.get().archiveFile
     changelog = rootProject.file("CHANGELOG.md").readText().trim()
     type = getReleaseType()
@@ -234,14 +242,20 @@ publishMods {
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
         projectId = "360438"
-        minecraftVersions.add(MINECRAFT_VERSION)
-        displayName = "Lithium $mcVersionLithiumVersion for Fabric"
+        minecraftVersionRange {
+            start = "$MC_PUBLISHING_MIN_VERSION"
+            end = "$MC_PUBLISHING_MAX_VERSION"
+        }
+        displayName = "Lithium $mcDisplayVersionLithiumVersion for Fabric"
     }
 
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_API_KEY")
         projectId = "gvQqBUqZ"
-        minecraftVersions.add(MINECRAFT_VERSION)
+        minecraftVersionRange {
+            start = "$MC_PUBLISHING_MIN_VERSION"
+            end = "$MC_PUBLISHING_MAX_VERSION"
+        }
         displayName = "Lithium $MOD_VERSION for Fabric"
     }
 }
