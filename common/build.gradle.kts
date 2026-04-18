@@ -83,7 +83,7 @@ tasks.named<Copy>("processGametestResources") {
 
 tasks.register<Jar>("apiJar") {
     from(sourceSets["api"].output)
-    archiveBaseName.set("lithium-neoforge")
+    archiveBaseName.set("lithium")
     archiveClassifier.set("api")
     destinationDirectory = rootDir.resolve("build").resolve("libs")
 }
