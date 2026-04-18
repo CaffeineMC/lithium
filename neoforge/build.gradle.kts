@@ -3,7 +3,7 @@ import me.modmuss50.mpp.ReleaseType
 plugins {
     id("idea")
     id("net.neoforged.moddev") version "2.0.141"
-    id("java-library")
+    id("java")
     id("net.caffeinemc.mixin-config-plugin") version ("1.0-SNAPSHOT")
 }
 
@@ -67,7 +67,9 @@ tasks.jar {
 
     val main = project.project(":common").sourceSets.getByName("main")
     from(main.output.classesDirs)
-    from(main.output.resourcesDir)
+    from(main.output.resourcesDir!!) {
+        exclude("*.accesswidener")
+    }
 
     from(rootDir.resolve("LICENSE.md"))
 
