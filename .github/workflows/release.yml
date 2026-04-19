@@ -62,11 +62,11 @@ jobs:
         id: set_release_name
         run: |
           if [ "${{ inputs.platform }}" == "both" ]; then
-            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft MINECRAFT_DISPLAY_VERSION Fabric and Neoforge" >> $GITHUB_ENV
+            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft $MINECRAFT_DISPLAY_VERSION Fabric and Neoforge" >> $GITHUB_ENV
           elif [ "${{ inputs.platform }}" == "fabric" ]; then
-            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft MINECRAFT_DISPLAY_VERSION Fabric" >> $GITHUB_ENV
+            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft $MINECRAFT_DISPLAY_VERSION Fabric" >> $GITHUB_ENV
           elif [ "${{ inputs.platform }}" == "neoforge" ]; then
-            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft MINECRAFT_DISPLAY_VERSION Neoforge" >> $GITHUB_ENV
+            echo "RELEASE_NAME=Lithium $MOD_VERSION for Minecraft $MINECRAFT_DISPLAY_VERSION Neoforge" >> $GITHUB_ENV
           fi
 
       - name: Replace placeholders in CHANGELOG.md
