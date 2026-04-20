@@ -1,7 +1,10 @@
 {
   "package" : "net.caffeinemc.mods.lithium.fabric.mixin",
   "required" : true,
-  "compatibilityLevel" : "JAVA_21",
+  "compatibilityLevel" : "JAVA_25",
+  "mixinextras" : {
+    "minVersion" : "0.5.3"
+  },
   "plugin" : "net.caffeinemc.mods.lithium.mixin.LithiumMixinPlugin",
   "injectors" : {
     "defaultRequire" : 1
