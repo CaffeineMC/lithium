@@ -2,6 +2,7 @@ package net.caffeinemc.mods.lithium.mixin.entity.projectile_projectile_collision
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.caffeinemc.mods.lithium.common.entity.projectile.ProjectileCanHitEntityPredicate;
 import net.caffeinemc.mods.lithium.common.entity.projectile.ProjectileEntityClassGroup;
 import net.caffeinemc.mods.lithium.common.world.WorldHelper;
 import net.minecraft.world.entity.Entity;
@@ -24,7 +25,7 @@ public class ProjectileUtilMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;")
     )
     private static List<Entity> getEntitiesForCollision(Level level, @Nullable Entity searchingEntity, AABB box, Predicate<? super Entity> entityFilter, Operation<List<Entity>> original) {
-        if (searchingEntity != null && ProjectileEntityClassGroup.OPTIMIZED_PROJECTILES.contains(searchingEntity)) {
+        if (searchingEntity != null && entityFilter instanceof ProjectileCanHitEntityPredicate && ProjectileEntityClassGroup.OPTIMIZED_PROJECTILES.contains(searchingEntity)) {
             EntitySectionStorage<Entity> cache = WorldHelper.getEntityCacheOrNull(level);
             if (cache != null) {
                 return WorldHelper.getEntitiesOfEntityGroupPlusDragonPieces(level, cache, searchingEntity, ProjectileEntityClassGroup.CAN_MAYBE_BE_HIT_BY_OPTIMIZED_PROJECTILE, box, entityFilter);
