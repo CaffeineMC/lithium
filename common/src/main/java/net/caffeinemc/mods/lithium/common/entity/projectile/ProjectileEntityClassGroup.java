@@ -32,6 +32,9 @@ public class ProjectileEntityClassGroup {
         String remapped_canHitEntity = "canHitEntity";
         OPTIMIZED_PROJECTILES = new EntityClassGroup(
                 (Class<?> entityClass, Supplier<EntityType<?>> entityType) -> {
+                    if (!Projectile.class.isAssignableFrom(entityClass)) {
+                        return false;
+                    }
                     Class<?> parentClass = Projectile.class;
                     if (AbstractHurtingProjectile.class.isAssignableFrom(entityClass)) {
                         parentClass = AbstractHurtingProjectile.class;
