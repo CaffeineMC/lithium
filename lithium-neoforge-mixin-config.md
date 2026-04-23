@@ -397,6 +397,22 @@ Skips trying to create sprinting particles for all entities on the server side.
 (default: `false`)  
 Various experimental optimizations
   
+### `mixin.experimental.ai.poi.reduce_poi_memory`
+(default: `true`)  
+Reduce memory consumption of POI system  
+Requirements:
+- `mixin.ai.poi=true`  
+  
+### `mixin.experimental.ai.poi.reduce_poi_memory.check_consistency_with_blocks`
+(default: `true`)  
+Optimize checkConsistencyWithBlocks when using reduce_poi_memory optimizations
+  
+### `mixin.experimental.ai.poi.reduce_poi_memory.poi_unloading`
+(default: `true`)  
+Unload non-portal forced POIs.  
+Requirements:
+- `mixin.ai.poi.fast_portals=true`  
+  
 ### `mixin.experimental.entity`
 (default: `true`)  
 Experimental entity optimizations

@@ -23,6 +23,7 @@ accessible field net/minecraft/server/level/ChunkMap level Lnet/minecraft/server
 accessible field net/minecraft/world/level/chunk/Strategy LINEAR_PALETTE_FACTORY Lnet/minecraft/world/level/chunk/Palette$Factory;
 accessible field net/minecraft/world/level/chunk/Strategy SINGLE_VALUE_PALETTE_FACTORY Lnet/minecraft/world/level/chunk/Palette$Factory;
 accessible class net/minecraft/world/level/chunk/LevelChunk$RebindableTickingBlockEntityWrapper
+accessible class net/minecraft/world/level/chunk/storage/SectionStorage$PackedChunk
 accessible method net/minecraft/world/level/chunk/storage/SectionStorage getOrLoad (J)Ljava/util/Optional;
 accessible method net/minecraft/world/entity/ai/village/poi/PoiRecord acquireTicket ()Z
 accessible class net/minecraft/world/entity/ai/behavior/AcquirePoi$JitteredLinearRetry

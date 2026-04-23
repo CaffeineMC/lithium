@@ -19,6 +19,7 @@ import java.util.function.Predicate;
 
 /**
  * Stream-less fallback for PoiManager::getInChunk in case search is not otherwise optimized
+ *
  * @author jcw780
  */
 public class SingleChunkPointOfInterestStream extends Spliterators.AbstractSpliterator<PoiRecord> {
@@ -34,8 +35,8 @@ public class SingleChunkPointOfInterestStream extends Spliterators.AbstractSplit
 
     public SingleChunkPointOfInterestStream(Predicate<Holder<PoiType>> typeFilter, ChunkPos chunkPos, PoiManager.Occupancy status, RegionBasedStorageSectionExtended<PoiSection> storage) {
         super(Long.MAX_VALUE, Spliterator.ORDERED);
-        this.chunkX = chunkPos.x;
-        this.chunkZ = chunkPos.z;
+        this.chunkX = chunkPos.x();
+        this.chunkZ = chunkPos.z();
         this.storage = storage;
 
         this.chunkYMin = this.storage.lithium$getChunkYMin();

@@ -18,6 +18,8 @@ import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.chunk.storage.ChunkIOErrorReporter;
 import net.minecraft.world.level.chunk.storage.SectionStorage;
 import net.minecraft.world.level.chunk.storage.SimpleRegionStorage;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -36,14 +38,11 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType") // We don't get a choice, this is Minecraft's doing!
 @Mixin(SectionStorage.class)
-public abstract class SectionStorageMixin<R> implements RegionBasedStorageSectionExtended<R> {
+public abstract class SectionStorageMixin<R, P> implements RegionBasedStorageSectionExtended<R> {
     @Mutable
     @Shadow
     @Final
     private Long2ObjectMap<Optional<R>> storage;
-
-    @Shadow
-    protected abstract Optional<R> get(long pos);
 
     @Shadow
     @Final
@@ -51,6 +50,18 @@ public abstract class SectionStorageMixin<R> implements RegionBasedStorageSectio
 
     @Shadow
     protected abstract void unpackChunk(ChunkPos chunkPos);
+
+    @Shadow
+    @Final
+    private Codec<P> codec;
+
+    @Shadow
+    @Final
+    static Logger LOGGER;
+
+    @Shadow
+    @Final
+    private Function<R, P> packer;
 
     private Long2ObjectOpenHashMap<BitSet> columns;
 
@@ -103,6 +114,33 @@ public abstract class SectionStorageMixin<R> implements RegionBasedStorageSectio
         }
 
         flags.set(y, value.isPresent());
+    }
+
+    @Override
+    @Nullable
+    public BitSet lithium$getColumn(long chunkPos) {
+        return this.columns.get(chunkPos);
+    }
+
+    @Override
+    public BitSet lithium$removeColumn(long chunkPos) {
+        return this.columns.remove(chunkPos);
+    }
+
+    @Override
+    public Optional<R> lithium$removeSectionWithoutUpdatingColumn(long sectionPos) {
+        return ((ListeningLong2ObjectOpenHashMap<Optional<R>>) this.storage).removeSilently(sectionPos);
+    }
+
+    @Override
+    public BitSet lithium$getOrAddColumnIfNull(long chunkPos) {
+        BitSet column = this.columns.get(chunkPos);
+
+        if (column == null) {
+            this.columns.put(chunkPos, column = new BitSet(Pos.SectionYIndex.getNumYSections(this.levelHeightAccessor)));
+        }
+
+        return column;
     }
 
     @Override
@@ -182,7 +220,7 @@ public abstract class SectionStorageMixin<R> implements RegionBasedStorageSectio
     }
 
     @Override
-    public Optional<R> lithium$getElementAt(long sectionPos) {
+    public Optional<R> lithium$uncheckedGetElementAt(long sectionPos) {
         return this.storage.get(sectionPos);
     }
 
@@ -195,4 +233,5 @@ public abstract class SectionStorageMixin<R> implements RegionBasedStorageSectio
     public int lithium$getChunkYMaxInclusive() {
         return Pos.SectionYCoord.getMaxYSectionInclusive(this.levelHeightAccessor);
     }
+
 }
