@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MemorySlot.class)
 public class MemorySlotMixin<T> {
 
+    @Unique
     private static final String CRASH_MESSAGE = "Dummy client side brain memory slot cannot be modified! This is an optimization introduced by lithium. " +
             "Since minecraft clients do not execute mob AI logic, allocating complete brains is unnecessary. " +
             "This crash is thrown when a mod tries to write memories to client side brains anyway. If this really is " +

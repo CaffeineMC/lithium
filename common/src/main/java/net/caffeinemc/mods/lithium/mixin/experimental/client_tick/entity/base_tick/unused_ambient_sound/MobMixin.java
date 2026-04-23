@@ -19,7 +19,11 @@ public abstract class MobMixin extends LivingEntity {
             method = "baseTick()V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;isAlive()Z")
     )
-    private boolean playAmbientSound(boolean original) {
-        return original && (!this.level().isClientSide() || (Object) this instanceof Breeze);
+    private boolean andIsServerSide(boolean original) {
+        return original && (
+                !this.level().isClientSide() ||
+                        //Breeze can play client side sounds, when not on ground AND client side brain doesn't have a target (it should never have a target client side?)
+                        (Object) this instanceof Breeze)
+                ;
     }
 }
