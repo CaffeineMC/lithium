@@ -1,4 +1,4 @@
-package net.caffeinemc.mods.lithium.mixin.experimental.client_tick.entity.unused_brain;
+package net.caffeinemc.mods.lithium.mixin.client_tick.entity.unused_brain;
 
 import it.unimi.dsi.fastutil.objects.AbstractReference2ObjectFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;

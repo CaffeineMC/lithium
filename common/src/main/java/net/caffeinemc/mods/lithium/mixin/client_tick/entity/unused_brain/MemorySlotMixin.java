@@ -1,4 +1,4 @@
-package net.caffeinemc.mods.lithium.mixin.experimental.client_tick.entity.unused_brain;
+package net.caffeinemc.mods.lithium.mixin.client_tick.entity.unused_brain;
 
 import net.caffeinemc.mods.lithium.common.client.SharedFields;
 import net.minecraft.world.entity.ai.memory.MemorySlot;

@@ -1,4 +1,4 @@
-package net.caffeinemc.mods.lithium.mixin.experimental.client_tick.particle.biome_particles;
+package net.caffeinemc.mods.lithium.mixin.client_tick.particle.biome_particles;
 
 import net.caffeinemc.mods.lithium.common.client.SharedFields;
 import net.minecraft.client.multiplayer.ClientLevel;

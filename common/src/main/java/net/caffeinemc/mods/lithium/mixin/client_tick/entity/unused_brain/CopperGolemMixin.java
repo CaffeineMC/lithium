@@ -1,4 +1,4 @@
-package net.caffeinemc.mods.lithium.mixin.experimental.client_tick.entity.unused_brain;
+package net.caffeinemc.mods.lithium.mixin.client_tick.entity.unused_brain;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.world.entity.Entity;

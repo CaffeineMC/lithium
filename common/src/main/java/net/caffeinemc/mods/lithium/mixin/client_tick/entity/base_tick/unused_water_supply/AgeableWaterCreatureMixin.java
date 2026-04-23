@@ -1,4 +1,4 @@
-package net.caffeinemc.mods.lithium.mixin.experimental.client_tick.entity.base_tick.unused_water_supply;
+package net.caffeinemc.mods.lithium.mixin.client_tick.entity.base_tick.unused_water_supply;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.world.entity.AgeableMob;

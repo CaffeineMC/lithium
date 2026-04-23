@@ -1,4 +1,4 @@
-package net.caffeinemc.mods.lithium.mixin.experimental.client_tick.entity.base_tick.unused_ambient_sound;
+package net.caffeinemc.mods.lithium.mixin.client_tick.entity.base_tick.unused_ambient_sound;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.world.entity.EntityType;

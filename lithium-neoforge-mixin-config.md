@@ -232,6 +232,38 @@ Optimizes chunk palette compaction when serializing chunks
 (default: `true`)  
 Compatibility for NeoForge's chunk loading tricks. Should stay enabled.
   
+### `mixin.client_tick`
+(default: `true`)  
+Client-side only optimizations
+  
+### `mixin.client_tick.entity`
+(default: `true`)  
+Client-side only entity optimizations
+  
+### `mixin.client_tick.entity.base_tick`
+(default: `true`)  
+Client-side entity base tick optimizations
+  
+### `mixin.client_tick.entity.base_tick.unused_ambient_sound`
+(default: `true`)  
+Skip client-side server-only entity ambient sound play attempts
+  
+### `mixin.client_tick.entity.base_tick.unused_water_supply`
+(default: `true`)  
+Skip client-side breathing tick of water creatures
+  
+### `mixin.client_tick.entity.unused_brain`
+(default: `true`)  
+Skip creating brains for living entities on the client
+  
+### `mixin.client_tick.particle`
+(default: `true`)  
+Client-side only particle optimizations
+  
+### `mixin.client_tick.particle.biome_particles`
+(default: `true`)  
+Optimized client-side only biome particle spawning by checking the random chance before getting the biome
+  
 ### `mixin.collections`
 (default: `true`)  
 Various collection optimizations
@@ -364,38 +396,6 @@ Skips trying to create sprinting particles for all entities on the server side.
 ### `mixin.experimental`
 (default: `false`)  
 Various experimental optimizations
-  
-### `mixin.experimental.client_tick`
-(default: `true`)  
-Client-side only optimizations
-  
-### `mixin.experimental.client_tick.entity`
-(default: `true`)  
-Client-side only entity optimizations
-  
-### `mixin.experimental.client_tick.entity.base_tick`
-(default: `true`)  
-Client-side entity base tick optimizations
-  
-### `mixin.experimental.client_tick.entity.base_tick.unused_ambient_sound`
-(default: `true`)  
-Skip client-side server-only entity ambient sound play attempts
-  
-### `mixin.experimental.client_tick.entity.base_tick.unused_water_supply`
-(default: `true`)  
-Skip client-side breathing tick of water creatures
-  
-### `mixin.experimental.client_tick.entity.unused_brain`
-(default: `true`)  
-Skip creating brains for living entities on the client
-  
-### `mixin.experimental.client_tick.particle`
-(default: `true`)  
-Client-side only particle optimizations
-  
-### `mixin.experimental.client_tick.particle.biome_particles`
-(default: `true`)  
-Optimized client-side only biome particle spawning by checking the random chance before getting the biome
   
 ### `mixin.experimental.entity`
 (default: `true`)  
