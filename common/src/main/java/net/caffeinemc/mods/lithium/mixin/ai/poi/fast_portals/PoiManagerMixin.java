@@ -78,6 +78,8 @@ public abstract class PoiManagerMixin extends SectionStorage<PoiSection, PoiSect
             int loadingChunkCounter = 0;
             for (int x = chunkX - chunkRadius, xMax = chunkX + chunkRadius; x <= xMax; x++) {
                 final int lowestSection  = this.lithium$getLowestEmptyOrInvalidSection(worldView, x, z);
+                //TODO this comment is hard to understand. What is flipped, what check for unloading, what means never unloaded, how does this affect unload code, is the loaded chunks map shared and transport some kind of information?
+
                 // Flip the check for poi unloading so portal chunk POIs are never unloaded
                 // This prevents an edgecase where all sections are loaded and valid in chunk being unloaded despite
                 // being portal loaded - which creates additional lag on subsequent tp's after unloading.
@@ -117,7 +119,7 @@ public abstract class PoiManagerMixin extends SectionStorage<PoiSection, PoiSect
         int setSectionIndex = -1;
         while ((setSectionIndex = column.nextSetBit(setSectionIndex + 1)) != -1
                 && setSectionIndex < lowestUnsetSection) {
-            Optional<PoiSection> section = this.lithium$uncheckedGetElementAt(
+            Optional<PoiSection> section = this.lithium$getElementAt(
                     SectionPos.asLong(x, Pos.SectionYCoord.fromSectionIndex(worldView, setSectionIndex), z)
             );
 

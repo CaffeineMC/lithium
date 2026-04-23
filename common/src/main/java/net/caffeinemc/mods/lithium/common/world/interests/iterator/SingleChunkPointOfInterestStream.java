@@ -76,7 +76,7 @@ public class SingleChunkPointOfInterestStream extends Spliterators.AbstractSplit
 
     private Iterator<PoiRecord> getSectionIterator(int chunkX, int chunkY, int chunkZ) {
         // Note: chunk is already "POI loaded" by lithium$getNonEmptyPOISections
-        PoiSection poiSection = this.storage.lithium$uncheckedGetElementAt(SectionPos.asLong(chunkX, chunkY, chunkZ)).orElse(null);
+        PoiSection poiSection = this.storage.lithium$getElementAt(SectionPos.asLong(chunkX, chunkY, chunkZ)).orElse(null);
         if (poiSection == null) {
             return null;
         }

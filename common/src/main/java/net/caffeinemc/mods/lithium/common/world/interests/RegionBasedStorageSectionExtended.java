@@ -14,7 +14,7 @@ public interface RegionBasedStorageSectionExtended<R> {
     @Nullable
     public BitSet lithium$getColumn(long chunkPos);
 
-    BitSet lithium$getOrAddColumnIfNull(long chunkPos);
+    void lithium$createEmptyColumn(long chunkPos);
 
     <S, T, U> U lithium$getFirstInRangeInChunkColumn(int chunkX, int chunkZ,
                                                      long deltaYSqMargin,
@@ -35,23 +35,17 @@ public interface RegionBasedStorageSectionExtended<R> {
 
     /**
      * Manually remove a chunk section column bitset - only used when unloading chunk with no POISections
-     *
-     * @param chunkPos
-     * @return
      */
     BitSet lithium$removeColumn(long chunkPos);
 
     /**
      * Remove a section from the storage without updating the columns map - column adjustment must be handled manually
-     *
-     * @param l
-     * @return
      */
-    Optional<R> lithium$removeSectionWithoutUpdatingColumn(long l);
+    void lithium$removeSectionWithoutUpdatingColumn(long l);
 
     int lithium$getChunkYMin();
 
     int lithium$getChunkYMaxInclusive();
 
-    Optional<R> lithium$uncheckedGetElementAt(long sectionPos);
+    Optional<R> lithium$getElementAt(long sectionPos);
 }

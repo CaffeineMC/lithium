@@ -27,11 +27,7 @@ public abstract class PoiManagerMixin implements PoiCheckConsistency<PoiSection>
     }
 
     /**
-     * Copy the logic of PoiManager::checkConsistencyWithBlocks except using Lithium columns lookup
-     *
-     * @param sectionPos
-     * @param levelChunkSection
-     * @param column
+     * Copy the logic of {@link PoiManager#checkConsistencyWithBlocks(SectionPos, LevelChunkSection)} except using Lithium columns lookup
      */
     @Override
     public void lithium$CheckConsistencyWithBlocks(SectionPos sectionPos, LevelChunkSection levelChunkSection, BitSet column) {
@@ -39,7 +35,7 @@ public abstract class PoiManagerMixin implements PoiCheckConsistency<PoiSection>
         final int currentYSectionIndex = sectionPos.y() - chunkYMin;
         if (column.get(currentYSectionIndex)) {
             // Chunk should already be unpacked - do not need to check further
-            Optional<PoiSection> optional = this.lithium$uncheckedGetElementAt(sectionPos.asLong());
+            Optional<PoiSection> optional = this.lithium$getElementAt(sectionPos.asLong());
             if (optional.isPresent()) {
                 PoiSection section = optional.get();
                 section.refresh(biConsumer -> {
@@ -48,6 +44,7 @@ public abstract class PoiManagerMixin implements PoiCheckConsistency<PoiSection>
                     }
                 });
             } else {
+                //TODO what effects will throwing have? Does this delete the chunk, fix the pois somehow or just crash the server?
                 throw new IllegalStateException(String.format("Section %d %d %d is missing from storage despite being marked as present", sectionPos.x(), sectionPos.y(), sectionPos.z()));
             }
         } else {

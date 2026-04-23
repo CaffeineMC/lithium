@@ -56,7 +56,7 @@ public abstract class SectionStorageMixin<R> implements RegionBasedStorageSectio
     @Inject(method = "unpackChunk(Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/world/level/chunk/storage/SectionStorage$PackedChunk;)V", at = @At(value = "HEAD"))
     private void initializeColumnBitset(ChunkPos chunkPos, @Coerce Object ignored, CallbackInfo ci) {
         final long pos = chunkPos.pack();
-        this.lithium$getOrAddColumnIfNull(pos);
+        this.lithium$createEmptyColumn(pos);
     }
 
     // Do not add Optional.empty() sections into the map

@@ -20,10 +20,10 @@ public abstract class ChunkMapMixin {
     private PoiManager poiManager;
 
     // Inject after the chunkMap save because PoiManager::flush is called
-    @Inject(method = "method_60440", at = @At(value = "INVOKE", target = "net/minecraft/server/level/ChunkMap.save (Lnet/minecraft/world/level/chunk/ChunkAccess;)Z", shift = At.Shift.AFTER))
-    void unloadChunkPOIs(ChunkHolder chunkHolder, CompletableFuture completableFuture, long chunkPos, CallbackInfo ci) {
-        if (((PoiUnloading) this.poiManager).lithium$shouldUnloadChunkPOIs(chunkPos)) {
-            ((PoiUnloading) this.poiManager).lithium$unloadChunkPOIs(chunkPos);
+    @Inject(method = "lambda$scheduleUnload$0", at = @At(value = "INVOKE", target = "net/minecraft/server/level/ChunkMap.save (Lnet/minecraft/world/level/chunk/ChunkAccess;)Z", shift = At.Shift.AFTER))
+    void unloadChunkPOIs(ChunkHolder chunkHolder, CompletableFuture<?> saveSyncFuture, long pos, CallbackInfo ci) {
+        if (((PoiUnloading) this.poiManager).lithium$shouldUnloadChunkPOIs(pos)) {
+            ((PoiUnloading) this.poiManager).lithium$unloadChunkPOIs(pos);
         }
     }
 }

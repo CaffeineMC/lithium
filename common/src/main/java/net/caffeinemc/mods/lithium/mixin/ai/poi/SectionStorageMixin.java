@@ -128,19 +128,15 @@ public abstract class SectionStorageMixin<R, P> implements RegionBasedStorageSec
     }
 
     @Override
-    public Optional<R> lithium$removeSectionWithoutUpdatingColumn(long sectionPos) {
-        return ((ListeningLong2ObjectOpenHashMap<Optional<R>>) this.storage).removeSilently(sectionPos);
+    public void lithium$removeSectionWithoutUpdatingColumn(long sectionPos) {
+        ((ListeningLong2ObjectOpenHashMap<Optional<R>>) this.storage).removeSilently(sectionPos);
     }
 
     @Override
-    public BitSet lithium$getOrAddColumnIfNull(long chunkPos) {
-        BitSet column = this.columns.get(chunkPos);
-
-        if (column == null) {
-            this.columns.put(chunkPos, column = new BitSet(Pos.SectionYIndex.getNumYSections(this.levelHeightAccessor)));
+    public void lithium$createEmptyColumn(long chunkPos) {
+        if (!this.columns.containsKey(chunkPos)) {
+            this.columns.put(chunkPos, new BitSet(Pos.SectionYIndex.getNumYSections(this.levelHeightAccessor)));
         }
-
-        return column;
     }
 
     @Override
@@ -220,7 +216,7 @@ public abstract class SectionStorageMixin<R, P> implements RegionBasedStorageSec
     }
 
     @Override
-    public Optional<R> lithium$uncheckedGetElementAt(long sectionPos) {
+    public Optional<R> lithium$getElementAt(long sectionPos) {
         return this.storage.get(sectionPos);
     }
 
