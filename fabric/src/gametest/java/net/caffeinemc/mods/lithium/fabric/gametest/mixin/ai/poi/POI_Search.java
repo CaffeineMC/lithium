@@ -4,6 +4,7 @@ package net.caffeinemc.mods.lithium.fabric.gametest.mixin.ai.poi;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.caffeinemc.mods.lithium.common.world.interests.PoiOrdering;
+import net.caffeinemc.mods.lithium.common.world.interests.PointOfInterestStorageExtended;
 import net.fabricmc.fabric.api.gametest.v1.CustomTestMethodInvoker;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
@@ -120,9 +121,13 @@ public class POI_Search implements CustomTestMethodInvoker {
         }
 
 
+        boolean isUsingLithiumCode = poiManager instanceof PointOfInterestStorageExtended; //False when lithium mixins not applied
+
+        String id = isUsingLithiumCode ? "Lithium" : "Vanilla";
+
         // Print to file if it does not exist yet, otherwise compare with existing file.
-        File outputFile = new File("poi_search_output/" + context.getLevel().getSeed() + "_" + center.getX() + "_" + center.getY() + "_" + center.getZ() + ".txt");
-        File newOutputFile = outputFile.exists() ? new File("poi_search_output/" + context.getLevel().getSeed() + "_" + center.getX() + "_" + center.getY() + "_" + center.getZ() + "_new.txt") : outputFile;
+        File outputFile = new File("poi_search_output/" + id + "_" + context.getLevel().getSeed() + "_" + center.getX() + "_" + center.getY() + "_" + center.getZ() + ".txt");
+        File comparisonFile = isUsingLithiumCode ? new File("poi_search_output/" + "Vanilla" + "_" + context.getLevel().getSeed() + "_" + center.getX() + "_" + center.getY() + "_" + center.getZ() + ".txt") : null;
 
         StringBuilder sb = new StringBuilder();
         sb.append("countInRange:").append(countInRange).append("\n");
@@ -158,16 +163,14 @@ public class POI_Search implements CustomTestMethodInvoker {
         sb.append(Arrays.toString(allClosestFirstWithTypePositions.toArray()));
         sb.append("\n");
 
-        if (!outputFile.exists()) {
-            outputFile.getParentFile().mkdirs();
-            try (java.io.FileWriter writer = new java.io.FileWriter(newOutputFile)) {
-                writer.write(sb.toString());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        String outputString = sb.toString();
+
+        String existingContent = null;
+        if (comparisonFile != null) {
+            if (!comparisonFile.exists()) {
+                error("POI search results from vanilla have to be produced first. Do this by running the test while not applying lithium mixins!");
             }
-        } else {
-            String existingContent;
-            try (java.io.FileReader reader = new java.io.FileReader(outputFile);
+            try (java.io.FileReader reader = new java.io.FileReader(comparisonFile);
                  java.io.BufferedReader br = new java.io.BufferedReader(reader)) {
                 StringBuilder existingSb = new StringBuilder();
                 String line;
@@ -178,16 +181,20 @@ public class POI_Search implements CustomTestMethodInvoker {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
 
-            if (!existingContent.equals(sb.toString())) {
-                try (java.io.FileWriter writer = new java.io.FileWriter(newOutputFile)) {
-                    writer.write(sb.toString());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                error("POI search results differ from expected output. See " + newOutputFile.getAbsolutePath());
+        if (comparisonFile == null || !existingContent.equals(outputString)) {
+            outputFile.getParentFile().mkdirs();
+            try (java.io.FileWriter writer = new java.io.FileWriter(outputFile)) {
+                writer.write(outputString);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            if (comparisonFile != null) {
+                error("POI search results differ from expected output. See " + outputFile.getAbsolutePath());
             }
         }
+
 
         context.succeed();
     }
@@ -203,7 +210,7 @@ public class POI_Search implements CustomTestMethodInvoker {
         ServerLevel level = context.getLevel();
         RandomSource random = RandomSource.create(level.getSeed()); //Hardcode seed here to be able to check equality with vanilla.
 
-        int iterations = 5;
+        int iterations = 12;
         for (int i = 0; i < iterations; i++) {
 
             int x = random.nextInt(60000000) - 30000000;
@@ -248,7 +255,7 @@ public class POI_Search implements CustomTestMethodInvoker {
 
             System.out.println("Placed " + poiCount + " POIs, running test method...");
 
-            method.invoke(this, context, new BlockPos(x, y, z), random);
+            method.invoke(this, context, new BlockPos(x, y, z), RandomSource.create(random.nextLong()));
         }
     }
 }
