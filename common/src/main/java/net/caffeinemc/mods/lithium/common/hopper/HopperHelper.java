@@ -13,9 +13,9 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
-import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,7 +79,7 @@ public class HopperHelper {
     }
 
     public static ComparatorUpdatePattern determineComparatorUpdatePattern(Container from, LithiumStackList fromStackList) {
-        if ((from instanceof HopperBlockEntity) || !(from instanceof RandomizableContainerBlockEntity)) {
+        if ((from instanceof HopperBlockEntity) || !(from instanceof BaseContainerBlockEntity)) {
             return ComparatorUpdatePattern.NO_UPDATE;
         }
         //calculate the signal strength of the inventory, but also keep the content weight variable
