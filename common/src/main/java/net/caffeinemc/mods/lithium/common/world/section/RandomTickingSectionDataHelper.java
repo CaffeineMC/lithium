@@ -1,10 +1,8 @@
 package net.caffeinemc.mods.lithium.common.world.section;
 
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import net.caffeinemc.mods.lithium.common.block.BlockCountingSection;
 import net.caffeinemc.mods.lithium.common.block.BlockStateFlagHolder;
 import net.caffeinemc.mods.lithium.common.block.BlockStateFlags;
-import net.caffeinemc.mods.lithium.mixin.LithiumMixinPlugin;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -14,7 +12,6 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.Palette;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.material.FluidState;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
@@ -51,93 +48,23 @@ public class RandomTickingSectionDataHelper {
         }
     }
 
-    /**
-     * Block counter that also initializes the minisection counts
-     */
-    public static class LithiumBlockCounter implements PalettedContainer.CountConsumer<BlockState> {
-
-        private final byte[] randomTickData;
-        private byte lastRandomTickableBlockCountTotal;
-        private int minisectionIndex;
-
-        private final PalettedContainer.CountConsumer<BlockState> delegate;
-
-        public LithiumBlockCounter(byte[] randomTickData, PalettedContainer.CountConsumer<BlockState> original) {
-            this.randomTickData = randomTickData;
-            this.lastRandomTickableBlockCountTotal = 0;
-            this.minisectionIndex = 0;
-            this.delegate = original;
+    public static void handleSectionSingleBlockState(BlockState state, byte[] randomTickData) {
+        if (state.isRandomlyTicking() || state.getFluidState().isRandomlyTicking()) {
+            initDataForAllRandomTickingSection(randomTickData);
+        } else {
+            initNonRandomTickingSection(randomTickData);
         }
+    }
 
-        @Override
-        public void accept(@NotNull BlockState blockState, int i) {
-            this.delegate.accept(blockState, i);
-        }
+    public interface LithiumRandomTickingBlockCounter {
 
-        public void finishedCountingMinisection(Int2IntOpenHashMap indexCounts, Palette<BlockState> palette) {
-            //A bunch of bytes can over- and underflow here, but actually it is no issue
-            //Subtract the previous total first, since the new total is added in the forEach below
-            this.randomTickData[this.minisectionIndex] -= this.lastRandomTickableBlockCountTotal;
-            indexCounts.int2IntEntrySet().forEach(entry -> {
-                BlockState blockState = palette.valueFor(entry.getIntKey());
-                if ((((BlockStateFlagHolder) blockState).lithium$getAllFlags() & RANDOM_TICKING_FLAG_MASK) != 0) {
-                    this.randomTickData[this.minisectionIndex] += (byte) entry.getIntValue();
-                }
-            });
-            this.lastRandomTickableBlockCountTotal += this.randomTickData[this.minisectionIndex];
+        void lithium$init(byte[] randomTickableBlocksByY);
 
-            this.minisectionIndex++;
-        }
+        void lithium$finishedCountingMinisection(Int2IntOpenHashMap indexCounts, Palette<BlockState> palette);
 
+        <T> void lithium$wholeSectionSingleBlock(T singleBlockState, int count);
 
-        public <T> void wholeSectionSingleBlock(T singleBlockState, int count) {
-            if (count != 4096) {
-                return; //handleAfterCounting will fall back to scanning the sections blocks
-            }
-
-            if (singleBlockState instanceof BlockState state) {
-                if (state.isRandomlyTicking() || state.getFluidState().isRandomlyTicking()) {
-                    initDataForAllRandomTickingSection(this.randomTickData);
-                } else {
-                    initNonRandomTickingSection(this.randomTickData);
-                }
-                this.minisectionIndex = MINISECTION_COUNT;
-            }
-
-        }
-
-        public void handleAfterCounting(LevelChunkSection section) {
-            if (MINISECTION_COUNT != this.minisectionIndex) { //Mod compatibility issue fallback - Mixin in PalettedContainer could not detect our counter, as another mod wrapped it again or another method of counting blocks was used instead.
-                if (this.randomTickData != ((LithiumSectionData) section).lithium$getSectionData().getRandomTickableBlocksByY()) {
-                    throw new IllegalArgumentException("Lithium random tick data was replaced unexpectedly!");
-                }
-                naiveInitializeData(section.getStates(), this.randomTickData);
-            }
-
-            if (LithiumMixinPlugin.DEBUG) {
-                sanityCheckRandomTickableBlockCount((BlockCountingSection) section);
-            }
-        }
-
-        private void sanityCheckRandomTickableBlockCount(BlockCountingSection section) {
-            // Sanity check: Total random block count equals sum of minisection counts:
-
-            int randomTickableStatesCount = section.lithium$getCount(BlockStateFlags.RANDOM_TICKING);
-            int sum = 0;
-            byte[] tickData = this.randomTickData;
-            for (int i = 0; i < tickData.length; i++) {
-                byte randomTickDatum = tickData[i];
-                sum += Byte.toUnsignedInt(randomTickDatum);
-                if (i == tickData.length - 1) {
-                    if (Byte.toUnsignedInt(randomTickDatum) > LAST_MINISECTION_SIZE) {
-                        throw new IllegalStateException("Lithium random tick data contains too large last minisection value: " + randomTickDatum + " > " + LAST_MINISECTION_SIZE);
-                    }
-                }
-            }
-            if (randomTickableStatesCount != sum) {
-                throw new IllegalStateException("Lithium random tick data initialization calculated inconsistent results: " + randomTickableStatesCount + " != " + sum);
-            }
-        }
+        void lithium$handleAfterCounting(LevelChunkSection section);
     }
 
     public static void initDataForAllRandomTickingSection(LithiumSectionData.SectionData sectionData) {

@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 
-@Mixin(value = LevelChunkSection.class, priority = 2000 /*Apply after other mixins to pass lithium block counter object as outermost*/)
+@Mixin(value = LevelChunkSection.class)
 public abstract class LevelChunkSectionMixin implements LithiumSectionData {
 
     @Shadow
@@ -60,11 +60,19 @@ public abstract class LevelChunkSectionMixin implements LithiumSectionData {
                     target = "Lnet/minecraft/world/level/chunk/PalettedContainer;count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V"
             )
     )
-    private void initFlagCounters(PalettedContainer<BlockState> instance, PalettedContainer.CountConsumer<BlockState> countConsumer, Operation<Void> original) {
+    private void initFlagCounters(PalettedContainer<BlockState> blockStates, PalettedContainer.CountConsumer<BlockState> output, Operation<Void> original) {
         byte[] randomTickableBlocksByY = Objects.requireNonNull(this.lithium$getSectionData().getRandomTickableBlocksByY());
-        RandomTickingSectionDataHelper.LithiumBlockCounter lithiumBlockCounter = new RandomTickingSectionDataHelper.LithiumBlockCounter(randomTickableBlocksByY, countConsumer);
-        original.call(instance, lithiumBlockCounter);
-        lithiumBlockCounter.handleAfterCounting((LevelChunkSection) (Object) this);
+        if (output instanceof RandomTickingSectionDataHelper.LithiumRandomTickingBlockCounter lithiumRandomTickingBlockCounter) {
+            lithiumRandomTickingBlockCounter.lithium$init(randomTickableBlocksByY);
+        }
+
+        original.call(blockStates, output);
+
+        if (output instanceof RandomTickingSectionDataHelper.LithiumRandomTickingBlockCounter lithiumRandomTickingBlockCounter) {
+            lithiumRandomTickingBlockCounter.lithium$handleAfterCounting((LevelChunkSection) (Object) this);
+        } else {
+            RandomTickingSectionDataHelper.naiveInitializeData(blockStates, randomTickableBlocksByY);
+        }
     }
 
 

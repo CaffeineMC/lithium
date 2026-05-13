@@ -23,7 +23,7 @@ public class PalettedContainerMixin<T> {
 
     @ModifyArg(method = "count", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/BitStorage;getAll(Ljava/util/function/IntConsumer;)V"))
     private IntConsumer initializeRandomTickExtraData(IntConsumer originalConsumer, @Local(argsOnly = true) PalettedContainer.CountConsumer<T> countConsumer, @Local(name = "counts") Int2IntOpenHashMap indexCounts) {
-        if (countConsumer instanceof RandomTickingSectionDataHelper.LithiumBlockCounter lithiumBlockCounter) {
+        if (countConsumer instanceof RandomTickingSectionDataHelper.LithiumRandomTickingBlockCounter lithiumRandomTickingBlockCounter) {
             Palette<T> palette = this.data.palette();
             return new IntConsumer() {
                 int index = 0;
@@ -35,7 +35,7 @@ public class PalettedContainerMixin<T> {
                     this.index++;
                     if (this.index % RandomTickingSectionDataHelper.MINISECTION_SIZE == 0 || this.index == 4096) {
                         //noinspection unchecked
-                        lithiumBlockCounter.finishedCountingMinisection(indexCounts, (Palette<BlockState>) palette);
+                        lithiumRandomTickingBlockCounter.lithium$finishedCountingMinisection(indexCounts, (Palette<BlockState>) palette);
                     }
                 }
             };
@@ -46,8 +46,8 @@ public class PalettedContainerMixin<T> {
 
     @WrapOperation(method = "count", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;accept(Ljava/lang/Object;I)V"))
     private void initializeRandomTickExtraData(PalettedContainer.CountConsumer<T> countConsumer, T singleBlockState, int count, Operation<Void> original) {
-        if (countConsumer instanceof RandomTickingSectionDataHelper.LithiumBlockCounter lithiumBlockCounter) {
-            lithiumBlockCounter.wholeSectionSingleBlock(singleBlockState, count);
+        if (countConsumer instanceof RandomTickingSectionDataHelper.LithiumRandomTickingBlockCounter lithiumRandomTickingBlockCounter) {
+            lithiumRandomTickingBlockCounter.lithium$wholeSectionSingleBlock(singleBlockState, count);
         }
         original.call(countConsumer, singleBlockState, count);
     }

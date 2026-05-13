@@ -3,6 +3,7 @@ package net.caffeinemc.mods.lithium.mixin.util.block_tracking;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.caffeinemc.mods.lithium.common.block.*;
 import net.caffeinemc.mods.lithium.common.tracking.block.ChunkSectionChangeCallback;
+import net.caffeinemc.mods.lithium.common.tracking.block.LithiumBlockCounter;
 import net.caffeinemc.mods.lithium.common.tracking.block.SectionedBlockChangeTracker;
 import net.caffeinemc.mods.lithium.common.world.section.LithiumSectionData;
 import net.minecraft.network.FriendlyByteBuf;
@@ -63,13 +64,14 @@ public abstract class LevelChunkSectionMixin implements BlockCountingSection, Bl
                     target = "Lnet/minecraft/world/level/chunk/PalettedContainer;count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V"
             )
     )
-    private PalettedContainer.CountConsumer<BlockState> initFlagCounters(PalettedContainer.CountConsumer<BlockState> countConsumer) {
-        short[] countsByFlag = Objects.requireNonNull(this.lithium$getSectionData().getCountsByFlag());
+    private PalettedContainer.CountConsumer<BlockState> initLithiumBlockCounter(PalettedContainer.CountConsumer<BlockState> countConsumer) {
 
-        return (state, count) -> {
-            countConsumer.accept(state, count);
-            addToFlagCount(countsByFlag, state, (short) count);
-        };
+        if (countConsumer instanceof LithiumBlockCounter lithiumBlockCounter) {
+            short[] countsByFlag = Objects.requireNonNull(this.lithium$getSectionData().getCountsByFlag());
+            lithiumBlockCounter.lithium$init(countsByFlag);
+        }
+
+        return countConsumer;
     }
 
     @Inject(method = "recalcBlockCounts()V", at = @At("HEAD"))
@@ -94,17 +96,6 @@ public abstract class LevelChunkSectionMixin implements BlockCountingSection, Bl
         ChunkSectionChangeCallback changeListener = this.lithium$getSectionData().getChangeListener();
         if (changeListener != null) {
             changeListener.onBlockChange(this, x, y, z, oldState, newState);
-        }
-    }
-
-    @Unique
-    private static void addToFlagCount(short[] countsByFlag, BlockState state, short change) {
-        int flags = ((BlockStateFlagHolder) state).lithium$getAllFlags();
-        int i;
-        while ((i = Integer.numberOfTrailingZeros(flags)) < 32 && i < countsByFlag.length) {
-            //either count up by one (prevFlag not set) or down by one (prevFlag set)
-            countsByFlag[i] += change;
-            flags &= ~(1 << i);
         }
     }
 
