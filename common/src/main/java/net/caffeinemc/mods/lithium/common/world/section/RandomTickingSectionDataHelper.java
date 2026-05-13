@@ -58,9 +58,9 @@ public class RandomTickingSectionDataHelper {
 
     public interface LithiumRandomTickingBlockCounter {
 
-        void lithium$init(byte[] randomTickableBlocksByY);
+        void lithium$initRandomTickingBlockCounter(byte[] randomTickableBlocksByY);
 
-        void lithium$finishedCountingMinisection(Int2IntOpenHashMap indexCounts, Palette<BlockState> palette);
+        void lithium$finishedCountingMinisection(Int2IntOpenHashMap indexCounts, short[] indexCountsArray /*For compatibility with serialization optimization*/, Palette<BlockState> palette);
 
         <T> void lithium$wholeSectionSingleBlock(T singleBlockState, int count);
 

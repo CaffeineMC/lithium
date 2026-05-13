@@ -28,23 +28,33 @@ public class LevelChunkSection$BlockCounterMixin implements RandomTickingSection
 
 
     @Override
-    public void lithium$init(byte[] randomTickData) {
+    public void lithium$initRandomTickingBlockCounter(byte[] randomTickData) {
         this.randomTickData = randomTickData;
         this.lastRandomTickableBlockCountTotal = 0;
         this.minisectionIndex = 0;
     }
 
     @Override
-    public void lithium$finishedCountingMinisection(Int2IntOpenHashMap indexCounts, Palette<BlockState> palette) {
+    public void lithium$finishedCountingMinisection(Int2IntOpenHashMap indexCounts, short[] indexCountsArray, Palette<BlockState> palette) {
         //A bunch of bytes can over- and underflow here, but actually it is no issue
         //Subtract the previous total first, since the new total is added in the forEach below
+        //The result will be the count of random tickable blocks in that minisection
         this.randomTickData[this.minisectionIndex] -= this.lastRandomTickableBlockCountTotal;
-        indexCounts.int2IntEntrySet().forEach(entry -> {
-            BlockState blockState = palette.valueFor(entry.getIntKey());
-            if ((((BlockStateFlagHolder) blockState).lithium$getAllFlags() & RandomTickingSectionDataHelper.RANDOM_TICKING_FLAG_MASK) != 0) {
-                this.randomTickData[this.minisectionIndex] += (byte) entry.getIntValue();
+        if (indexCountsArray != null /*For compatibility with serialization optimization*/) {
+            for (int i = 0; i < indexCountsArray.length; ++i) {
+                BlockState blockState = palette.valueFor(i);
+                if ((((BlockStateFlagHolder) blockState).lithium$getAllFlags() & RandomTickingSectionDataHelper.RANDOM_TICKING_FLAG_MASK) != 0) {
+                    this.randomTickData[this.minisectionIndex] += (byte) indexCountsArray[i];
+                }
             }
-        });
+        } else {
+            indexCounts.int2IntEntrySet().forEach(entry -> {
+                BlockState blockState = palette.valueFor(entry.getIntKey());
+                if ((((BlockStateFlagHolder) blockState).lithium$getAllFlags() & RandomTickingSectionDataHelper.RANDOM_TICKING_FLAG_MASK) != 0) {
+                    this.randomTickData[this.minisectionIndex] += (byte) entry.getIntValue();
+                }
+            });
+        }
         this.lastRandomTickableBlockCountTotal += this.randomTickData[this.minisectionIndex];
 
         this.minisectionIndex++;

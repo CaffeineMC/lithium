@@ -68,7 +68,7 @@ public abstract class LevelChunkSectionMixin implements BlockCountingSection, Bl
 
         if (countConsumer instanceof LithiumBlockCounter lithiumBlockCounter) {
             short[] countsByFlag = Objects.requireNonNull(this.lithium$getSectionData().getCountsByFlag());
-            lithiumBlockCounter.lithium$init(countsByFlag);
+            lithiumBlockCounter.lithium$initBlockCounter(countsByFlag);
         }
 
         return countConsumer;

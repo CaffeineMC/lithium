@@ -60,10 +60,10 @@ public abstract class LevelChunkSectionMixin implements LithiumSectionData {
                     target = "Lnet/minecraft/world/level/chunk/PalettedContainer;count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V"
             )
     )
-    private void initFlagCounters(PalettedContainer<BlockState> blockStates, PalettedContainer.CountConsumer<BlockState> output, Operation<Void> original) {
+    private void initFlagCountersAndRecalcBlockCounts(PalettedContainer<BlockState> blockStates, PalettedContainer.CountConsumer<BlockState> output, Operation<Void> original) {
         byte[] randomTickableBlocksByY = Objects.requireNonNull(this.lithium$getSectionData().getRandomTickableBlocksByY());
         if (output instanceof RandomTickingSectionDataHelper.LithiumRandomTickingBlockCounter lithiumRandomTickingBlockCounter) {
-            lithiumRandomTickingBlockCounter.lithium$init(randomTickableBlocksByY);
+            lithiumRandomTickingBlockCounter.lithium$initRandomTickingBlockCounter(randomTickableBlocksByY);
         }
 
         original.call(blockStates, output);

@@ -1,5 +1,11 @@
 package net.caffeinemc.mods.lithium.mixin.chunk.serialization;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import net.caffeinemc.mods.lithium.common.world.chunk.CompactingPackedIntegerArray;
 import net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette;
 import net.caffeinemc.mods.lithium.mixin.util.accessors.StrategyAccessor;
@@ -12,18 +18,21 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.IntConsumer;
 import java.util.stream.LongStream;
 
 /**
  * Makes a number of patches to {@link PalettedContainer} to speed up integer array compaction. While I/O operations
  * in Minecraft 1.15+ are handled off-thread, NBT serialization is not and happens on the main server thread.
  */
-@Mixin(PalettedContainer.class)
+@Mixin(value = PalettedContainer.class, priority = 50 /*Apply mixin first to avoid replacing lambdas from other mods that wrap the original lambda*/)
 public abstract class PalettedContainerMixin<T> {
     private static final ThreadLocal<short[]> CACHED_ARRAY_4096 = ThreadLocal.withInitial(() -> new short[4096]);
     private static final ThreadLocal<short[]> CACHED_ARRAY_64 = ThreadLocal.withInitial(() -> new short[64]);
@@ -118,30 +127,65 @@ public abstract class PalettedContainerMixin<T> {
      * If we know the palette will contain a fixed number of elements, we can make a significant optimization by counting
      * blocks with a simple array instead of a integer map. Since palettes make no guarantee that they are bounded,
      * we have to try and determine for each implementation type how many elements there are.
+     * <p>
+     * Original implementation (Complete method replacement) by JellySquid
+     * Mod compatibility rewrite by 2No2Name
      *
      * @author JellySquid
+     * @author 2No2Name
      */
-    @Inject(method = "count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V", at = @At("HEAD"), cancellable = true)
-    public void count(PalettedContainer.CountConsumer<T> consumer, CallbackInfo ci) {
+    @WrapOperation(
+            method = "count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V",
+            at = @At(
+                    value = "NEW",
+                    target = "()Lit/unimi/dsi/fastutil/ints/Int2IntOpenHashMap;"
+            )
+    )
+    private Int2IntOpenHashMap returnDummyInstance(Operation<Int2IntOpenHashMap> original) {
         int len = this.data.palette().getSize();
 
         // Do not allocate huge arrays if we're using a large palette
         if (len > 4096) {
-            return;
+            return original.call();
         }
 
-        short[] counts = new short[len];
+        return null;
+    }
 
-        this.data.storage().getAll(i -> counts[i]++);
+    @ModifyArg(
+            method = "count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/util/BitStorage;getAll(Ljava/util/function/IntConsumer;)V"
+            )
+    )
+    private IntConsumer getFastCountingLambda(IntConsumer output, @Local(name = "counts") Int2IntOpenHashMap counts, @Share(value = "countsArray", namespace = "lithium") LocalRef<short[]> countsRef) {
 
-        for (int i = 0; i < counts.length; i++) {
-            T obj = this.data.palette().valueFor(i);
+        // Do not allocate huge arrays if we're using a large palette
+        if (counts != null) {
+            return output;
+        }
 
-            if (obj != null) {
-                consumer.accept(obj, counts[i]);
+        //This mixin should be applied first for mod compatibility reasons
+        short[] countsArray = new short[this.data.palette().getSize()];
+        countsRef.set(countsArray);
+        return i -> countsArray[i]++;
+    }
+
+    @Inject(
+            method = "count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lit/unimi/dsi/fastutil/ints/Int2IntOpenHashMap;int2IntEntrySet()Lit/unimi/dsi/fastutil/ints/Int2IntMap$FastEntrySet;"
+            ), cancellable = true
+    )
+    private void fastForEachAndCancelMethod(PalettedContainer.CountConsumer<T> output, CallbackInfo ci, @Local(name = "counts") Int2IntOpenHashMap counts, @Share(value = "countsArray", namespace = "lithium") LocalRef<short[]> countsRef) {
+        if (counts == null) {
+            ci.cancel();
+            short[] countsArray = Objects.requireNonNull(countsRef.get());
+            for (int i = 0; i < countsArray.length; i++) {
+                output.accept(this.data.palette().valueFor(i), countsArray[i]);
             }
         }
-
-        ci.cancel();
     }
 }

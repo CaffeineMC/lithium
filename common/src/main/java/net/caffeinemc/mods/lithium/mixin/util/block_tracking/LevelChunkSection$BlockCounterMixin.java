@@ -19,7 +19,7 @@ public abstract class LevelChunkSection$BlockCounterMixin implements LithiumBloc
     short[] countsByFlag;
 
     @Override
-    public void lithium$init(short[] countsByFlag) {
+    public void lithium$initBlockCounter(short[] countsByFlag) {
         this.countsByFlag = countsByFlag;
     }
 

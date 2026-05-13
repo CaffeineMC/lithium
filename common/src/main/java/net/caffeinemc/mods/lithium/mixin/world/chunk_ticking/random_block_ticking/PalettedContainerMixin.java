@@ -3,6 +3,8 @@ package net.caffeinemc.mods.lithium.mixin.world.chunk_ticking.random_block_ticki
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import net.caffeinemc.mods.lithium.common.world.section.RandomTickingSectionDataHelper;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,9 +23,13 @@ public class PalettedContainerMixin<T> {
     @Shadow
     private volatile PalettedContainer.Data<T> data;
 
-    @ModifyArg(method = "count", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/BitStorage;getAll(Ljava/util/function/IntConsumer;)V"))
-    private IntConsumer initializeRandomTickExtraData(IntConsumer originalConsumer, @Local(argsOnly = true) PalettedContainer.CountConsumer<T> countConsumer, @Local(name = "counts") Int2IntOpenHashMap indexCounts) {
-        if (countConsumer instanceof RandomTickingSectionDataHelper.LithiumRandomTickingBlockCounter lithiumRandomTickingBlockCounter) {
+    @ModifyArg(method = "count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/BitStorage;getAll(Ljava/util/function/IntConsumer;)V"))
+    private IntConsumer initializeRandomTickExtraData(IntConsumer originalConsumer,
+                                                      @Local(argsOnly = true) PalettedContainer.CountConsumer<T> output,
+                                                      @Local(name = "counts") Int2IntOpenHashMap counts,
+                                                      @Share(value = "countsArray", namespace = "lithium") LocalRef<short[]> countsRef /*For compatibility with serialization optimization*/
+    ) {
+        if (output instanceof RandomTickingSectionDataHelper.LithiumRandomTickingBlockCounter lithiumRandomTickingBlockCounter) {
             Palette<T> palette = this.data.palette();
             return new IntConsumer() {
                 int index = 0;
@@ -35,7 +41,7 @@ public class PalettedContainerMixin<T> {
                     this.index++;
                     if (this.index % RandomTickingSectionDataHelper.MINISECTION_SIZE == 0 || this.index == 4096) {
                         //noinspection unchecked
-                        lithiumRandomTickingBlockCounter.lithium$finishedCountingMinisection(indexCounts, (Palette<BlockState>) palette);
+                        lithiumRandomTickingBlockCounter.lithium$finishedCountingMinisection(counts, countsRef.get(), (Palette<BlockState>) palette);
                     }
                 }
             };
@@ -44,8 +50,8 @@ public class PalettedContainerMixin<T> {
         return originalConsumer;
     }
 
-    @WrapOperation(method = "count", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;accept(Ljava/lang/Object;I)V"))
-    private void initializeRandomTickExtraData(PalettedContainer.CountConsumer<T> countConsumer, T singleBlockState, int count, Operation<Void> original) {
+    @WrapOperation(method = "count(Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/PalettedContainer$CountConsumer;accept(Ljava/lang/Object;I)V"))
+    private void handleWholeSectionSingleBlock(PalettedContainer.CountConsumer<T> countConsumer, T singleBlockState, int count, Operation<Void> original) {
         if (countConsumer instanceof RandomTickingSectionDataHelper.LithiumRandomTickingBlockCounter lithiumRandomTickingBlockCounter) {
             lithiumRandomTickingBlockCounter.lithium$wholeSectionSingleBlock(singleBlockState, count);
         }
