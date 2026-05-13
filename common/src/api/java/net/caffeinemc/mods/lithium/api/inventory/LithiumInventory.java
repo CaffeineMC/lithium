@@ -2,9 +2,9 @@ package net.caffeinemc.mods.lithium.api.inventory;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
+import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 
 /**
  * Provides the ability for mods to allow Lithium's hopper optimizations to access their inventories' for item transfers.
@@ -51,8 +51,8 @@ public interface LithiumInventory extends Container {
      * loot generation method. Otherwise, its loot may be generated too late.
      */
     default void generateLootLithium() {
-        if (this instanceof RandomizableContainerBlockEntity) {
-            ((RandomizableContainerBlockEntity) this).unpackLootTable(null);
+        if (this instanceof RandomizableContainer) {
+            ((RandomizableContainer) this).unpackLootTable(null);
         }
         if (this instanceof ContainerEntity) {
             ((ContainerEntity) this).unpackChestVehicleLootTable(null);
