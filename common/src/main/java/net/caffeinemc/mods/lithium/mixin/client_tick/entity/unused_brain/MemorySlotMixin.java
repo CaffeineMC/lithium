@@ -1,6 +1,7 @@
 package net.caffeinemc.mods.lithium.mixin.client_tick.entity.unused_brain;
 
 import net.caffeinemc.mods.lithium.common.client.SharedFields;
+import net.caffeinemc.mods.lithium.mixin.LithiumMixinPlugin;
 import net.minecraft.world.entity.ai.memory.MemorySlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -20,11 +21,15 @@ public class MemorySlotMixin<T> {
             "configuration file https://github.com/CaffeineMC/lithium/blob/develop/lithium-mixin-config.md to disable the same setting.";
 
     @Inject(
-            method = "set(Ljava/lang/Object;J)V", at = @At("HEAD")
-    )
-    private void throwIfDummyMemorySlot(T value, long timeToLive, CallbackInfo ci) {
+            method = "set(Ljava/lang/Object;J)V", at = @At("HEAD"),
+            cancellable = true)
+    private void cancelIfDummyMemorySlot(T value, long timeToLive, CallbackInfo ci) {
         if ((Object) this == SharedFields.DUMMY_SLOT) {
-            throwOnModifyDummyMemorySlot();
+            if (LithiumMixinPlugin.DEBUG) {
+                throwOnModifyDummyMemorySlot();
+            } else {
+                ci.cancel();
+            }
         }
     }
 

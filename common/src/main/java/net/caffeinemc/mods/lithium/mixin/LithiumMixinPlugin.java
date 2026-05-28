@@ -18,7 +18,7 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
     private final Logger logger = LogManager.getLogger("Lithium");
 
     private static LithiumConfig CONFIG;
-    public static Boolean DEBUG = false;
+    public static boolean DEBUG = false;
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -32,7 +32,8 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
             throw new RuntimeException("Could not load configuration file for Lithium", e);
         }
         String experimentalInfo = CONFIG.isOptionEnabled("mixin.experimental") ? " Experimental features are enabled! " : "";
-        String debugInfo = (DEBUG = CONFIG.isOptionEnabled("mixin.debug")) ? "Lithium debug statements are enabled!" : "";
+        DEBUG = CONFIG.isOptionEnabled("mixin.debug");
+        String debugInfo = DEBUG ? "Lithium debug statements are enabled!" : "";
         this.logger.info("Loaded configuration file for Lithium: {} options available, {} override(s) found.{}{}",
                 CONFIG.getOptionCount(), CONFIG.getOptionOverrideCount(), experimentalInfo, debugInfo);
 
