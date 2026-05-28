@@ -108,6 +108,7 @@
     "chunk.palette.StrategyMixin$Strategy2Mixin",
     "chunk.serialization.PalettedContainerMixin",
     "chunk.serialization.SimpleBitStorageMixin",
+    "client_tick.entity.unused_brain.AllayMixin",
     "collections.attributes.AttributeMapMixin",
     "collections.block_entity_tickers.LevelChunkMixin",
     "collections.brain.BrainMixin",
