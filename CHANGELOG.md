@@ -8,7 +8,13 @@ Lithium _LithiumVersion_ for Minecraft _MCVersion_ fixes a startup issue.
 
 Make sure to take a backup of your world before using the mod and please report any bugs and mod compatibility issues at the [issue tracker](https://github.com/CaffeineMC/lithium-fabric/issues). You can check the [description of each optimization](https://github.com/CaffeineMC/lithium/blob/_ReleaseTag_/lithium-mixin-config.md) and how to disable it when encountering a problem.
 
-It is highly recommended to update from the previous release.
+## Additions
+- Client side tick optimizations (previously experimental), including optimized biome particle spawning
+
+## Fixes
+- Fix comparator updates missing for furnaces and brewing stands (since 24w10a / 1.20.5)
+- Fix mistake in projectile entity optimization causing looking-at predicates in commands failing
 
 ## Changes
-- Version lock releases to minor version only
+- Make random_block_ticking and serialization optimizations work together
+- LithiumBlockCounter as interface instead of class for mod compatibility
