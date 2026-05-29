@@ -67,36 +67,32 @@ public class LithiumDoubleInventory extends CompoundContainer implements Lithium
 
     @Override
     public void lithium$emitStackListReplaced() {
-        ReferenceOpenHashSet<InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
-        this.inventoryHandlingTypeListeners = null; //Prevent concurrent modification
-        if (listeners != null && !listeners.isEmpty()) {
-            listeners.forEach(inventoryChangeListener -> inventoryChangeListener.handleStackListReplaced(this));
-        }
-        if (this.inventoryHandlingTypeListeners == null) {
-            this.inventoryHandlingTypeListeners = listeners;
-        }
-
         this.invalidateChangeListening();
     }
 
     @Override
     public void lithium$emitRemoved() {
+        this.invalidateChangeListening();
+    }
+
+
+    private void invalidateChangeListening() {
+        //Invalidate listeners to this inventory
         ReferenceOpenHashSet<InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
         this.inventoryHandlingTypeListeners = null; //Prevent concurrent modification
         if (listeners != null && !listeners.isEmpty()) {
             listeners.forEach(listener -> listener.lithium$handleInventoryRemoved(this));
-        }
-        if (this.inventoryHandlingTypeListeners == null) {
+            listeners.clear();
             this.inventoryHandlingTypeListeners = listeners;
         }
 
-        this.invalidateChangeListening();
-    }
-
-    private void invalidateChangeListening() {
         if (this.inventoryChangeListeners != null) {
             this.inventoryChangeListeners.clear();
         }
+
+        //Invalidate own listening
+        ((InventoryChangeTracker) this.first).stopListenForMajorInventoryChanges(this);
+        ((InventoryChangeTracker) this.second).stopListenForMajorInventoryChanges(this);
 
         LithiumStackList lithiumStackList = this.doubleStackList;
         if (lithiumStackList != null) {
