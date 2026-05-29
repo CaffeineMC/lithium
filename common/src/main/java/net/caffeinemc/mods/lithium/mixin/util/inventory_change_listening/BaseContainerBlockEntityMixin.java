@@ -33,33 +33,21 @@ public abstract class BaseContainerBlockEntityMixin implements InventoryChangeEm
 
     @Override
     public void lithium$emitStackListReplaced() {
-        ReferenceArraySet<InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
-        this.inventoryHandlingTypeListeners = null; //Prevent concurrent modification
-        if (listeners != null && !listeners.isEmpty()) {
-            for (InventoryChangeListener inventoryChangeListener : listeners) {
-                inventoryChangeListener.handleStackListReplaced(this);
-            }
-            listeners.clear();
-        }
-        if (this.inventoryHandlingTypeListeners == null) {
-            this.inventoryHandlingTypeListeners = listeners;
-        }
-
-        if (this instanceof InventoryChangeListener listener) {
-            listener.handleStackListReplaced(this);
-        }
-
         this.invalidateChangeListening();
     }
 
     @Override
     public void lithium$emitRemoved() {
+        this.invalidateChangeListening();
+    }
+
+    @Unique
+    private void invalidateChangeListening() {
+        //Invalidate listeners to this inventory
         ReferenceArraySet<InventoryChangeListener> listeners = this.inventoryHandlingTypeListeners;
         this.inventoryHandlingTypeListeners = null; //Prevent concurrent modification
         if (listeners != null && !listeners.isEmpty()) {
-            for (InventoryChangeListener listener : listeners) {
-                listener.lithium$handleInventoryRemoved(this);
-            }
+            listeners.forEach(listener -> listener.lithium$handleInventoryRemoved(this));
             listeners.clear();
         }
         if (this.inventoryHandlingTypeListeners == null) {
@@ -70,15 +58,11 @@ public abstract class BaseContainerBlockEntityMixin implements InventoryChangeEm
             listener.lithium$handleInventoryRemoved(this);
         }
 
-        this.invalidateChangeListening();
-    }
-
-    @Unique
-    private void invalidateChangeListening() {
         if (this.inventoryChangeListeners != null) {
             this.inventoryChangeListeners.clear();
         }
 
+        //Invalidate own listening
         LithiumStackList lithiumStackList = this instanceof LithiumInventory ? InventoryHelper.getLithiumStackListOrNull((LithiumInventory) this) : null;
         if (lithiumStackList != null && this instanceof InventoryChangeTracker inventoryChangeTracker) {
             lithiumStackList.removeInventoryModificationCallback(inventoryChangeTracker);

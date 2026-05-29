@@ -3,9 +3,6 @@ package net.caffeinemc.mods.lithium.common.block.entity.inventory_change_trackin
 import net.minecraft.world.Container;
 
 public interface InventoryChangeListener {
-    default void handleStackListReplaced(Container inventory) {
-        this.lithium$handleInventoryRemoved(inventory);
-    }
 
     void lithium$handleInventoryContentModified(Container inventory);
 
