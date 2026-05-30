@@ -27,7 +27,9 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BlockEntity implem
     @SuppressWarnings("ShadowModifiers")
     @Shadow
     public int litTimeRemaining;
+    @Unique
     private WrappedBlockEntityTickInvokerAccessor tickWrapper = null;
+    @Unique
     private TickingBlockEntity sleepingTicker = null;
 
     public AbstractFurnaceBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState state) {

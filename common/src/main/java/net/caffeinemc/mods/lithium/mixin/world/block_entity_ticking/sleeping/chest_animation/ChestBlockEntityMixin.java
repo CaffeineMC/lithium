@@ -34,6 +34,7 @@ public abstract class ChestBlockEntityMixin implements SleepingBlockEntity {
     @Override
     public void lithium$setTickWrapper(WrappedBlockEntityTickInvokerAccessor tickWrapper) {
         this.tickWrapper = tickWrapper;
+        this.lithium$setSleepingTicker(null);
     }
 
     @Override
