@@ -723,7 +723,9 @@ Various improvements to explosions.
   
 ### `mixin.world.explosions.block_raycast`
 (default: `true`)  
-Various improvements to explosion block damage, e.g. not accessing blocks along an explosion ray multiple times
+Various improvements to explosion block damage, e.g. not accessing blocks along an explosion ray multiple times  
+Non-vanilla behavior:
+  Explosions do not destroy blocks which are placed by the same explosion damaging or killing entities (e.g. wither roses).
   
 ### `mixin.world.explosions.entity_raycast`
 (default: `true`)  
