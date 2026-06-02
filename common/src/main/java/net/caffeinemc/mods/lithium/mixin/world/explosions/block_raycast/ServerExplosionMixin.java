@@ -1,11 +1,12 @@
 package net.caffeinemc.mods.lithium.mixin.world.explosions.block_raycast;
 
-import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.caffeinemc.mods.lithium.common.explosion.DirectMappedExplosionBlockCache;
 import net.caffeinemc.mods.lithium.common.util.Pos;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -31,6 +32,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -45,12 +47,33 @@ import java.util.Optional;
  * @author jcw780
  * Cache explosion resistances and block states
  * @author 2No2Name, original PR by pwouik
+ * Switch to direct-mapped cache
+ * @author 2No2Name
  */
 @Mixin(ServerExplosion.class)
 public abstract class ServerExplosionMixin {
 
     @Unique
     private static final HashSet<?> DUMMY_HASHSET = new HashSet<>(0);
+
+    /**
+     * Size of the direct-mapped cache.
+     * 512 entries × (8 + 4 + ref) bytes ≈ ~10 KB – should fit into the L1 cache
+     * <p>
+     * 8-9 bits seems to be best for TNT in a synthetic test world. Using 9 since some explosions are larger than TNT.
+     * ~85% cache hit rate when testing TNT
+     */
+    @Unique
+    private static final int DIRECT_CACHE_BITS = 9;
+    @Unique
+    private static final int DIRECT_CACHE_SIZE = 1 << DIRECT_CACHE_BITS;
+    @Unique
+    private static final int DIRECT_CACHE_MASK = (1 << DIRECT_CACHE_BITS) - 1;
+
+    //Store cache in thread local to avoid allocations (5%-ish performance gain)
+    @Unique
+    private static final ThreadLocal<DirectMappedExplosionBlockCache> BLOCK_CACHE_TL = ThreadLocal.withInitial(() -> new DirectMappedExplosionBlockCache(DIRECT_CACHE_SIZE));
+
     @Shadow
     @Final
     private float radius;
@@ -93,11 +116,21 @@ public abstract class ServerExplosionMixin {
     @Unique
     private LongOpenHashSet explodedPositions; //Vanilla uses the number of exploded blocks, which is reduced by the air block optimization. Deduplication using a hashset is necessary as different explosion rays traverse the same blocks.
 
+    /**
+     * Direct-mapped cache:
+     * Tags are packed {@link BlockPos} to handle hash collisions correctly.
+     * Tag {@link Long#MIN_VALUE} means no cached value. MIN_VALUE equates to a block position over 3 million blocks
+     * outside the world border. {@link ServerExplosionMixin#performRayCast(RandomSource, double, double, double, LongOpenHashSet)}
+     * has a cutoff at the world border (blockX < -30000000). Thus, checking
+     * for the sentinel {@link Long#MIN_VALUE} is not needed.
+     */
     @Unique
-    private Long2ReferenceOpenHashMap<BlockState> cachedBlockStates;
+    private long[] directMappedTags;
+    @Unique
+    private BlockState[] directMappedStates;
 
     @Unique
-    private Long2FloatOpenHashMap cachedResistances;
+    private float[] directMappedResistances;
 
     @Unique
     private int bottomY, topY;
@@ -123,10 +156,36 @@ public abstract class ServerExplosionMixin {
         this.explodeAirBlocks = explodeAir;
 
         this.explodedPositions = new LongOpenHashSet();
+    }
 
-        this.cachedBlockStates = new Long2ReferenceOpenHashMap<>();
-        this.cachedResistances = new Long2FloatOpenHashMap();
-        this.cachedResistances.defaultReturnValue(-1f);
+    @Unique
+    private void initCaches() {
+        DirectMappedExplosionBlockCache arrays = BLOCK_CACHE_TL.get();
+        this.directMappedTags = arrays.directMappedTags();
+        Arrays.fill(this.directMappedTags, Long.MIN_VALUE);
+        this.directMappedStates = arrays.directMappedStates();
+        this.directMappedResistances = arrays.directMappedResistances();
+    }
+
+    @Unique
+    private static int posToCacheIndex(long posLong) {
+        return ((int) HashCommon.mix(posLong)) & DIRECT_CACHE_MASK;
+    }
+
+    @Unique
+    private void cacheBlock(long posLong, BlockState blockState, float totalResistance) {
+        int index = posToCacheIndex(posLong);
+        this.directMappedTags[index] = posLong;
+        this.directMappedResistances[index] = totalResistance;
+        this.directMappedStates[index] = blockState;
+    }
+
+    @Unique
+    private int getCacheHitIndex(long posLong) {
+        //No need to check for the MIN_VALUE sentinel here, since performRayCast prevents MIN_VALUE / the equivalent
+        // block position from reaching this method as parameter.
+        int index = posToCacheIndex(posLong);
+        return this.directMappedTags[index] == posLong ? index : -1;
     }
 
     @SuppressWarnings("unchecked")
@@ -159,6 +218,7 @@ public abstract class ServerExplosionMixin {
     @Inject(method = "calculateExplodedPositions",
             at = @At(value = "RETURN"))
     public void collectBlocks(CallbackInfoReturnable<List<BlockPos>> cir) {
+        this.initCaches();
         // Using integer encoding for the block positions provides a massive speedup and prevents us from needing to
         // allocate a block position for every step we make along each ray, eliminating essentially all the memory
         // allocations of this function. The overhead of packing block positions into integer format is negligible
@@ -196,9 +256,6 @@ public abstract class ServerExplosionMixin {
         while (it.hasNext()) {
             affectedBlocks.add(BlockPos.of(it.nextLong()));
         }
-
-        this.cachedBlockStates = null;
-        this.cachedResistances = null;
     }
 
     @Unique
@@ -276,9 +333,10 @@ public abstract class ServerExplosionMixin {
         long posLong = BlockPos.asLong(blockX, blockY, blockZ);
 
         // Use cached blast resistance and block state info
-        float cachedResistance = this.cachedResistances.get(posLong);
-        if (cachedResistance >= 0) {
-            this.tryMarkBlockForDestruction(strength, cachedResistance, posLong, this.cachedBlockStates.get(posLong), blockX, blockY, blockZ, touched);
+        int index = this.getCacheHitIndex(posLong);
+        if (index >= 0) {
+            float cachedResistance = this.directMappedResistances[index];
+            this.tryMarkBlockForDestruction(strength, cachedResistance, posLong, this.directMappedStates[index], blockX, blockY, blockZ, touched);
             return cachedResistance;
         }
 
@@ -307,7 +365,7 @@ public abstract class ServerExplosionMixin {
             if (chunk != null) {
                 // We operate directly on chunk sections to avoid interacting with BlockPos and to squeeze out as much
                 // performance as possible here
-                LevelChunkSection section = chunk.getSections()[Pos.SectionYIndex.fromBlockCoord(chunk, blockY)];
+                LevelChunkSection section = chunk.getSections()[SectionPos.blockToSectionCoord(blockY) - SectionPos.blockToSectionCoord(this.bottomY)];
 
                 // If the section doesn't exist or it's empty, assume that the block is air
                 if (section != null && !section.hasOnlyAir()) {
@@ -335,8 +393,7 @@ public abstract class ServerExplosionMixin {
         }
 
         // Cache the block state and the resistance for other explosion rays hitting the same position
-        this.cachedBlockStates.put(posLong, blockState);
-        this.cachedResistances.put(posLong, totalResistance);
+        this.cacheBlock(posLong, blockState, totalResistance);
 
         // Check if this ray is still strong enough to break blocks, and if so, add this position to the set
         // of positions to destroy
@@ -358,5 +415,4 @@ public abstract class ServerExplosionMixin {
             }
         }
     }
-
 }
