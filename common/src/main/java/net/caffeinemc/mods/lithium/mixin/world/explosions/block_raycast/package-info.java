@@ -1,8 +1,5 @@
 @MixinConfigOption(
-        description = "Various improvements to explosion block damage, e.g. not accessing blocks along an explosion ray multiple times",
-        nonVanillaBehavior = "Explosions do not destroy blocks which are placed by the same explosion damaging or killing entities " +
-                             "(e.g. wither roses). Similarly, they do not destroy blocks that are instantly placed from block updates " +
-                             "from blocks being blown up or entities being damaged (e.g. wither rose being placed)."
+        description = "Various improvements to explosion block damage, e.g. not accessing blocks along an explosion ray multiple times"
 )
 package net.caffeinemc.mods.lithium.mixin.world.explosions.block_raycast;
 

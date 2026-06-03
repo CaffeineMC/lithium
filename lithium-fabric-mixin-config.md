@@ -723,9 +723,17 @@ Various improvements to explosions.
   
 ### `mixin.world.explosions.block_raycast`
 (default: `true`)  
-Various improvements to explosion block damage, e.g. not accessing blocks along an explosion ray multiple times  
+Various improvements to explosion block damage, e.g. not accessing blocks along an explosion ray multiple times
+  
+### `mixin.world.explosions.block_raycast.skip_air`
+(default: `true`)  
+Explosions skip exploding air blocks, reducing allocations and collection sizes.  
 Non-vanilla behavior:
-  Explosions do not destroy blocks which are placed by the same explosion damaging or killing entities (e.g. wither roses). Similarly, they do not destroy blocks that are instantly placed from block updates from blocks being blown up or entities being damaged (e.g. wither rose being placed).
+  Explosions do not destroy blocks which are placed by the same explosion damaging or killing entities (e.g. wither roses). Similarly, they do not destroy blocks that are instantly placed from block updates from blocks being blown up or entities being damaged (e.g. wither rose being placed). The explosion counts how many air blocks it would have blown up to spawn the right amount of explosion particles. However, this skips special logic that could have protected the air block, e.g. a floating rail protecting air below it from a TNT minecart explosion.
+  
+### `mixin.world.explosions.block_raycast.skip_air.no_air_counting`
+(default: `true`)  
+Avoid counting exploded air blocks (for client side explosion size/particles) when no player is near the explosion.
   
 ### `mixin.world.explosions.entity_raycast`
 (default: `true`)  

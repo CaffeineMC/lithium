@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.caffeinemc.mods.lithium.common.explosion.DirectMappedExplosionBlockCache;
+import net.caffeinemc.mods.lithium.common.explosion.LithiumExplosion;
 import net.caffeinemc.mods.lithium.common.util.Pos;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -14,13 +15,11 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.ExplosionDamageCalculator;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerExplosion;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
@@ -51,7 +50,7 @@ import java.util.Optional;
  * @author 2No2Name
  */
 @Mixin(ServerExplosion.class)
-public abstract class ServerExplosionMixin {
+public abstract class ServerExplosionMixin implements LithiumExplosion {
 
     @Unique
     private static final HashSet<?> DUMMY_HASHSET = new HashSet<>(0);
@@ -85,9 +84,7 @@ public abstract class ServerExplosionMixin {
     @Shadow
     @Final
     private ExplosionDamageCalculator damageCalculator;
-    @Shadow
-    @Final
-    private boolean fire;
+
     @Shadow
     @Final
     private Vec3 center;
@@ -107,14 +104,9 @@ public abstract class ServerExplosionMixin {
     @Unique
     private ChunkAccess prevChunk;
 
-    /**
-     * Whether the explosion cares about air blocks. If false, air blocks do not have to be added to the set of destroyed blocks.
-     * Skipping air blocks reduces the number of BlockPos allocations, shuffling and getBlockState calls in {@link ServerExplosion#interactWithBlocks(List)}
-     */
+    //Vanilla uses the number of exploded blocks, which is reduced by the air block optimization. Deduplication using a hashset is necessary as different explosion rays traverse the same blocks.
     @Unique
-    private boolean explodeAirBlocks;
-    @Unique
-    private LongOpenHashSet explodedPositions; //Vanilla uses the number of exploded blocks, which is reduced by the air block optimization. Deduplication using a hashset is necessary as different explosion rays traverse the same blocks.
+    private LongOpenHashSet explodedAirPositions;
 
     /**
      * Direct-mapped cache:
@@ -135,6 +127,15 @@ public abstract class ServerExplosionMixin {
     @Unique
     private int bottomY, topY;
 
+
+    /**
+     * Whether the explosion cares about air blocks. If false, air blocks do not have to be added to the set of destroyed blocks.
+     * Skipping air blocks reduces the number of BlockPos allocations, shuffling and getBlockState calls in {@link ServerExplosion#interactWithBlocks(List)}
+     */
+    @SuppressWarnings("JavadocReference")
+    @Unique
+    private byte skipAirBlocks;
+
     @Inject(
             method = "<init>(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/damagesource/DamageSource;Lnet/minecraft/world/level/ExplosionDamageCalculator;Lnet/minecraft/world/phys/Vec3;FZLnet/minecraft/world/level/Explosion$BlockInteraction;)V",
             at = @At("RETURN")
@@ -142,20 +143,23 @@ public abstract class ServerExplosionMixin {
     private void init(ServerLevel serverLevel, Entity entity, DamageSource damageSource, ExplosionDamageCalculator explosionDamageCalculator, Vec3 vec3, float f, boolean bl, Explosion.BlockInteraction blockInteraction, CallbackInfo ci) {
         this.bottomY = this.level.getMinY();
         this.topY = this.level.getMaxY();
+    }
 
-        boolean explodeAir = this.fire; // air blocks are only relevant for the explosion when fire should be created inside them
-        if (!explodeAir && this.level.dimension() == Level.END && this.level.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) {
-            float overestimatedExplosionRange = (8 + (int) (6f * this.radius));
-            int endPortalX = 0;
-            int endPortalZ = 0;
-            if (overestimatedExplosionRange > Math.abs(this.center.x - endPortalX) && overestimatedExplosionRange > Math.abs(this.center.z - endPortalZ)) {
-                explodeAir = true;
-                // exploding air works around accidentally fixing vanilla bug: an explosion cancelling the dragon fight start can destroy the newly placed end portal
-            }
+    @Override
+    public void lithium$setSkipAir() {
+        this.skipAirBlocks = 1;
+    }
+
+    @Override
+    public boolean lithium$isSkippingAir() {
+        return this.skipAirBlocks != 0;
+    }
+
+    @Override
+    public void lithium$setSkipAirWithoutCounting() {
+        if (this.lithium$isSkippingAir()) {
+            this.skipAirBlocks = 2;
         }
-        this.explodeAirBlocks = explodeAir;
-
-        this.explodedPositions = new LongOpenHashSet();
     }
 
     @Unique
@@ -165,6 +169,9 @@ public abstract class ServerExplosionMixin {
         Arrays.fill(this.directMappedTags, Long.MIN_VALUE);
         this.directMappedStates = arrays.directMappedStates();
         this.directMappedResistances = arrays.directMappedResistances();
+        if (this.skipAirBlocks == 1) {
+            this.explodedAirPositions = new LongOpenHashSet();
+        }
     }
 
     @Unique
@@ -209,7 +216,7 @@ public abstract class ServerExplosionMixin {
             method = "explode", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I")
     )
     private int getExplodedPositionCount(List<?> instance) {
-        return this.explodedPositions.size();
+        return this.explodedAirPositions != null ? this.explodedAirPositions.size() + instance.size() : instance.size();
     }
 
     /**
@@ -406,12 +413,15 @@ public abstract class ServerExplosionMixin {
     private void tryMarkBlockForDestruction(float strength, float totalResistance, long posLong, BlockState blockState, int blockX, int blockY, int blockZ, LongOpenHashSet touched) {
         float reducedStrength = strength - totalResistance;
         if (reducedStrength > 0.0F) {
-            this.explodedPositions.add(posLong);
-            if (this.explodeAirBlocks || !blockState.isAir()) {
-                BlockPos pos = this.cachedPos.set(blockX, blockY, blockZ);
-                if (this.damageCalculator.shouldBlockExplode((Explosion) (Object) this, this.level, pos, blockState, reducedStrength)) {
-                    touched.add(posLong);
+            if (this.skipAirBlocks != 0 && blockState.isAir()) {
+                if (this.explodedAirPositions != null) {
+                    this.explodedAirPositions.add(posLong);
                 }
+                return;
+            }
+            BlockPos pos = this.cachedPos.set(blockX, blockY, blockZ);
+            if (this.damageCalculator.shouldBlockExplode((Explosion) (Object) this, this.level, pos, blockState, reducedStrength)) {
+                touched.add(posLong);
             }
         }
     }
