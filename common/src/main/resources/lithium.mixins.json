@@ -181,6 +181,7 @@
     "minimal_nonvanilla.world.block_entity_ticking.support_cache.DirectBlockEntityTickInvokerMixin",
     "minimal_nonvanilla.world.block_entity_ticking.support_cache.LevelChunkMixin",
     "minimal_nonvanilla.world.expiring_chunk_tickets.TicketStorageMixin",
+    "profiler.ProfilerMixin",
     "shapes.blockstate_cache.BlockMixin",
     "shapes.lazy_shape_context.EntityCollisionContextMixin",
     "shapes.optimized_matching.ShapesMixin",
