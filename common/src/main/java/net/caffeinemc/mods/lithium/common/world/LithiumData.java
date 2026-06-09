@@ -12,7 +12,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -39,12 +39,22 @@ public interface LithiumData {
         public Data(HolderLookup.Provider registries) {
             this(
                     new GameEventDispatcherStorage(),
-                    Objects.requireNonNullElse(registries, RegistryAccess.EMPTY).lookup(Registries.BANNER_PATTERN).map(Raid::getLeaderBannerInstance).orElse(null),
+                    tryGetOminousBanner(registries),
                     new ReferenceOpenHashSet<>(),
                     new LithiumInterner<>(),
                     new LithiumInterner<>(),
                     new Long2ReferenceOpenHashMap<>()
             );
+        }
+
+        private static @Nullable ItemStack tryGetOminousBanner(HolderLookup.Provider registries) {
+            try {
+                return Objects.requireNonNullElse(registries, RegistryAccess.EMPTY).lookup(Registries.BANNER_PATTERN).map(Raid::getLeaderBannerInstance).orElse(null);
+            } catch (Exception e) {
+                //Sometimes mods do weird things with fake client/server levels. Sometimes their registry doesn't work.
+                //Returning null disables the optimization for these fake levels, which does not matter.
+                return null;
+            }
         }
     }
 
