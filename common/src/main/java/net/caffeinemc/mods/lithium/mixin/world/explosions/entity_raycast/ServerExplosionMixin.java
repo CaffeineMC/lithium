@@ -1,9 +1,8 @@
 package net.caffeinemc.mods.lithium.mixin.world.explosions.entity_raycast;
 
-import java.util.function.BiFunction;
-
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import net.caffeinemc.mods.lithium.common.explosion.DirectMappedVoxelShapeGetterCache;
 import net.caffeinemc.mods.lithium.common.util.Pos;
 import net.caffeinemc.mods.lithium.common.world.explosions.ClipContextAccess;
 import net.minecraft.core.BlockPos;
@@ -15,12 +14,15 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.function.BiFunction;
 
 /**
  * @author Crosby
@@ -85,14 +87,20 @@ public class ServerExplosionMixin {
     private static BiFunction<ClipContext, BlockPos, BlockHitResult> blockHitFactory(Entity entity) {
         return new BiFunction<>() {
             final Level level = entity.level();
+            final DirectMappedVoxelShapeGetterCache cache = DirectMappedVoxelShapeGetterCache.BLOCK_CACHE_TL.get();
             int chunkX = Integer.MIN_VALUE, chunkZ = Integer.MIN_VALUE;
             ChunkAccess chunk = null;
 
             @Override
             public BlockHitResult apply(ClipContext clipContext, BlockPos blockPos) {
-                BlockState state = getBlock(this.level, blockPos);
+                VoxelShape collisionShape = this.cache.getCollisionShape(blockPos.asLong(), this.level, ((ClipContextAccess) clipContext).lithium$getCollisionContext());
+                if (collisionShape == null) {
+                    BlockState state = getBlock(this.level, blockPos);
+                    collisionShape = state.getCollisionShape(this.level, blockPos, ((ClipContextAccess) clipContext).lithium$getCollisionContext());
+                    this.cache.cacheEntry(collisionShape, blockPos.asLong());
+                }
 
-                return state.getCollisionShape(this.level, blockPos, ((ClipContextAccess) clipContext).lithium$getCollisionContext()).clip(clipContext.getFrom(), clipContext.getTo(), blockPos);
+                return collisionShape.clip(clipContext.getFrom(), clipContext.getTo(), blockPos);
             }
 
             //Code duplicated from BlockGetterMixin
