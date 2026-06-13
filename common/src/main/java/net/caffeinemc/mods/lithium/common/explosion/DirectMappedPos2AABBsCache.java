@@ -1,24 +1,22 @@
 package net.caffeinemc.mods.lithium.common.explosion;
 
 import it.unimi.dsi.fastutil.HashCommon;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.AABB;
 
 import java.util.Arrays;
 
-public record DirectMappedVoxelShapeGetterCache(long[] directMappedTags, VoxelShape[] directMappedStates) {
+public record DirectMappedPos2AABBsCache(long[] directMappedTags, AABB[][] directMappedStates) {
     private static final int DIRECT_CACHE_BITS = 8;
     private static final int DIRECT_CACHE_SIZE = 1 << DIRECT_CACHE_BITS;
     private static final int DIRECT_CACHE_MASK = (1 << DIRECT_CACHE_BITS) - 1;
 
-    public static final ThreadLocal<DirectMappedVoxelShapeGetterCache> BLOCK_CACHE_TL = ThreadLocal.withInitial(() -> new DirectMappedVoxelShapeGetterCache(DIRECT_CACHE_SIZE));
+    public static final ThreadLocal<DirectMappedPos2AABBsCache> BLOCK_CACHE_TL = ThreadLocal.withInitial(() -> new DirectMappedPos2AABBsCache(DIRECT_CACHE_SIZE));
 
-    public DirectMappedVoxelShapeGetterCache(int size) {
-        this(new long[size], new VoxelShape[size]);
+    public DirectMappedPos2AABBsCache(int size) {
+        this(new long[size], new AABB[size][]);
     }
 
-    public VoxelShape getCollisionShape(long posLong, Level level, CollisionContext context) {
+    public AABB[] getEntry(long posLong) {
         //No need to check for the MIN_VALUE sentinel here, since performRayCast prevents MIN_VALUE / the equivalent
         // block position from reaching this method as parameter.
         int index = posToCacheIndex(posLong);
@@ -29,7 +27,7 @@ public record DirectMappedVoxelShapeGetterCache(long[] directMappedTags, VoxelSh
         }
     }
 
-    public void cacheEntry(VoxelShape collisionShape, long posLong) {
+    public void cacheEntry(AABB[] collisionShape, long posLong) {
         int index = posToCacheIndex(posLong);
         this.directMappedTags[index] = posLong;
         this.directMappedStates[index] = collisionShape;

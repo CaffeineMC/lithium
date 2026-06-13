@@ -2,16 +2,20 @@ package net.caffeinemc.mods.lithium.mixin.world.explosions.entity_raycast;
 
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.caffeinemc.mods.lithium.common.explosion.DirectMappedVoxelShapeGetterCache;
+import net.caffeinemc.mods.lithium.common.explosion.DirectMappedPos2AABBsCache;
+import net.caffeinemc.mods.lithium.common.explosion.ExplosionEntityRays;
+import net.caffeinemc.mods.lithium.common.util.ArrayConstants;
 import net.caffeinemc.mods.lithium.common.util.Pos;
 import net.caffeinemc.mods.lithium.common.world.explosions.ClipContextAccess;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -76,6 +80,8 @@ public class ServerExplosionMixin {
         return BlockGetter.traverseBlocks(clipContext.getFrom(), clipContext.getTo(), clipContext, hitFactoryRef.get(), ctx -> MISS);
     }
 
+    @Unique
+    private static final BlockHitResult DUMMY_HIT = new BlockHitResult(Vec3.ZERO, Direction.NORTH, BlockPos.ZERO, false);
     /**
      * Specialized version of {@link net.caffeinemc.mods.lithium.mixin.world.raycast.BlockGetterMixin#blockHitFactory(ClipContext)}
      * reusing the {@link ClipContext} by repeatedly adjust the raycast from position,
@@ -87,20 +93,35 @@ public class ServerExplosionMixin {
     private static BiFunction<ClipContext, BlockPos, BlockHitResult> blockHitFactory(Entity entity) {
         return new BiFunction<>() {
             final Level level = entity.level();
-            final DirectMappedVoxelShapeGetterCache cache = DirectMappedVoxelShapeGetterCache.BLOCK_CACHE_TL.get();
+            final DirectMappedPos2AABBsCache cache;
+
+            {
+                this.cache = DirectMappedPos2AABBsCache.BLOCK_CACHE_TL.get();
+                this.cache.invalidate();
+            }
+
             int chunkX = Integer.MIN_VALUE, chunkZ = Integer.MIN_VALUE;
             ChunkAccess chunk = null;
 
             @Override
             public BlockHitResult apply(ClipContext clipContext, BlockPos blockPos) {
-                VoxelShape collisionShape = this.cache.getCollisionShape(blockPos.asLong(), this.level, ((ClipContextAccess) clipContext).lithium$getCollisionContext());
-                if (collisionShape == null) {
+                long posLong = blockPos.asLong();
+                AABB[] aabbs = this.cache.getEntry(posLong);
+                VoxelShape collisionShape1;
+                if (aabbs == null) {
                     BlockState state = getBlock(this.level, blockPos);
-                    collisionShape = state.getCollisionShape(this.level, blockPos, ((ClipContextAccess) clipContext).lithium$getCollisionContext());
-                    this.cache.cacheEntry(collisionShape, blockPos.asLong());
+                    collisionShape1 = state.getCollisionShape(this.level, blockPos, ((ClipContextAccess) clipContext).lithium$getCollisionContext());
+                    if (collisionShape1.isEmpty()) {
+                        aabbs = ArrayConstants.EMPTY_AABBS;
+                    } else {
+                        aabbs = collisionShape1.toAabbs().toArray(AABB[]::new);
+                    }
+
+                    this.cache.cacheEntry(aabbs, posLong);
                 }
 
-                return collisionShape.clip(clipContext.getFrom(), clipContext.getTo(), blockPos);
+                boolean wasHit = aabbs.length > 0 && ExplosionEntityRays.doesRayHitOffsetAABBVolumes(aabbs, blockPos, clipContext.getFrom(), clipContext.getTo());
+                return wasHit ? DUMMY_HIT : null;
             }
 
             //Code duplicated from BlockGetterMixin
@@ -137,4 +158,5 @@ public class ServerExplosionMixin {
             }
         };
     }
+
 }
