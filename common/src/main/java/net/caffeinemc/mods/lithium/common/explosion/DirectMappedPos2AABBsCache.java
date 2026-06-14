@@ -6,7 +6,7 @@ import net.minecraft.world.phys.AABB;
 import java.util.Arrays;
 
 public record DirectMappedPos2AABBsCache(long[] directMappedTags, AABB[][] directMappedStates) {
-    private static final int DIRECT_CACHE_BITS = 8;
+    private static final int DIRECT_CACHE_BITS = 6;
     private static final int DIRECT_CACHE_SIZE = 1 << DIRECT_CACHE_BITS;
     private static final int DIRECT_CACHE_MASK = (1 << DIRECT_CACHE_BITS) - 1;
 
