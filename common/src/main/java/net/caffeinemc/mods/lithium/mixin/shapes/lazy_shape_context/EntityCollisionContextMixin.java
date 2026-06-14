@@ -1,5 +1,7 @@
 package net.caffeinemc.mods.lithium.mixin.shapes.lazy_shape_context;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -15,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EntityCollisionContext.class)
-public class EntityCollisionContextMixin {
+public abstract class EntityCollisionContextMixin {
     @Mutable
     @Shadow
     @Final
@@ -25,6 +27,13 @@ public class EntityCollisionContextMixin {
     @Final
     @Nullable
     private Entity entity;
+
+    @Mutable
+    @Shadow
+    @Final
+    private boolean descending;
+    @Unique
+    private boolean isDescendingNeedsInitialization;
 
     /**
      * Mixin the instanceof to always return false to avoid the expensive inventory access.
@@ -77,6 +86,31 @@ public class EntityCollisionContextMixin {
     private void initHeldItem() {
         if (this.heldItem == null) {
             this.heldItem = this.entity instanceof LivingEntity ? ((LivingEntity) this.entity).getMainHandItem() : ItemStack.EMPTY;
+        }
+    }
+
+    @WrapOperation(
+            method = "<init>(Lnet/minecraft/world/entity/Entity;ZZ)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isDescending()Z")
+    )
+    private static boolean skipIsDescending(Entity instance, Operation<Boolean> original) {
+        return false;
+    }
+
+    @Inject(
+            method = "<init>(Lnet/minecraft/world/entity/Entity;ZZ)V",
+            at = @At("RETURN")
+    )
+    private void initVars(CallbackInfo ci) {
+        this.isDescendingNeedsInitialization = true;
+    }
+
+    @Inject(
+            method = "isDescending", at = @At("HEAD")
+    )
+    private void initIsDescending(CallbackInfoReturnable<Boolean> cir) {
+        if (this.isDescendingNeedsInitialization) {
+            this.isDescendingNeedsInitialization = false;
+            this.descending = this.entity != null && this.entity.isDescending();
         }
     }
 }
