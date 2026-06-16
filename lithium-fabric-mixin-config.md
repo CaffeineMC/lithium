@@ -741,7 +741,7 @@ Avoid counting exploded air blocks (for client side explosion size/particles) wh
   
 ### `mixin.world.explosions.entity_raycast`
 (default: `true`)  
-Various improvements to explosion entity damage, e.g. simplifying the raycasts.
+Optimize explosion entity exposure calculation by lowering the number of block accesses, reducing allocations and caching block collision boxes.
   
 ### `mixin.world.game_events`
 (default: `true`)  
