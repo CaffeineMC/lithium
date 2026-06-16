@@ -4,6 +4,7 @@ import net.minecraft.gametest.framework.StructureUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.nio.file.Paths;
 
@@ -17,6 +18,6 @@ public class LithiumGametestNeoForgeMod {
     }
 
     public LithiumGametestNeoForgeMod(IEventBus bus, ModContainer modContainer) {
-
+        MixinEnvironment.getCurrentEnvironment().audit();
     }
 }
