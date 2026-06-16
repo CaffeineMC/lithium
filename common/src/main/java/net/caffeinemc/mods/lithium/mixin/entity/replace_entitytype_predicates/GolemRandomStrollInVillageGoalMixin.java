@@ -2,7 +2,7 @@ package net.caffeinemc.mods.lithium.mixin.entity.replace_entitytype_predicates;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.GolemRandomStrollInVillageGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
@@ -34,9 +34,9 @@ public abstract class GolemRandomStrollInVillageGoalMixin extends RandomStrollGo
             )
     )
     private List<Villager> getEntities(ServerLevel serverWorld, EntityTypeTest<Entity, Villager> filter, AABB box, Predicate<? super Villager> predicate) {
-        if (filter == EntityType.VILLAGER) {
+        if (filter == EntityTypes.VILLAGER) {
             return serverWorld.getEntitiesOfClass(Villager.class, this.mob.getBoundingBox().inflate(32.0), this::doesVillagerWantGolem);
         }
-        return serverWorld.getEntities(EntityType.VILLAGER, this.mob.getBoundingBox().inflate(32.0), this::doesVillagerWantGolem);
+        return serverWorld.getEntities(EntityTypes.VILLAGER, this.mob.getBoundingBox().inflate(32.0), this::doesVillagerWantGolem);
     }
 }

@@ -1,7 +1,5 @@
 package net.caffeinemc.mods.lithium.mixin.entity.equipment_tracking.equipment_changes;
 
-import java.util.Map;
-
 import net.caffeinemc.mods.lithium.common.entity.EquipmentInfo;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
@@ -16,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Map;
+
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
 
@@ -28,7 +28,7 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     @Inject(
-            method = "collectEquipmentChanges()Ljava/util/Map;",
+            method = "collectEquipmentChanges(Ljava/util/Map;)Ljava/util/Map;",
             at = @At("HEAD"),
             cancellable = true
     )

@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceReferenceImmutablePair;
 import net.caffeinemc.mods.lithium.common.reflection.ReflectionUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.BreezeWindCharge;
@@ -37,13 +38,13 @@ public class EntityClassGroup {
                 (Class<?> entityClass, Supplier<EntityType<?>> entityType) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, remapped_collidesWith, Entity.class));
 
         //sanity check: in case intermediary mappings changed, we fail
-        if ((!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(Minecart.class, EntityType.MINECART))) {
+        if ((!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(Minecart.class, EntityTypes.MINECART))) {
             throw new AssertionError();
         }
-        if ((!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(WindCharge.class, EntityType.WIND_CHARGE)) || (!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(BreezeWindCharge.class, EntityType.BREEZE_WIND_CHARGE))) {
+        if ((!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(WindCharge.class, EntityTypes.WIND_CHARGE)) || (!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(BreezeWindCharge.class, EntityTypes.BREEZE_WIND_CHARGE))) {
             throw new AssertionError();
         }
-        if ((CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(Shulker.class, EntityType.SHULKER))) {
+        if ((CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(Shulker.class, EntityTypes.SHULKER))) {
             //should not throw an Error here, because another mod *could* add the method to ShulkerEntity. Warning when this sanity check fails.
             Logger.getLogger("Lithium EntityClassGroup").warning("Either Lithium EntityClassGroup is broken or something else gave Shulkers the minecart-like collision behavior.");
         }
@@ -138,7 +139,7 @@ public class EntityClassGroup {
             BOAT_SHULKER_LIKE_COLLISION = new NoDragonClassGroup(
                     (Class<?> entityClass, Supplier<EntityType<?>> entityType) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, remapped_canBeCollidedWith, Entity.class));
 
-            if ((!BOAT_SHULKER_LIKE_COLLISION.contains(Shulker.class, EntityType.SHULKER))) {
+            if ((!BOAT_SHULKER_LIKE_COLLISION.contains(Shulker.class, EntityTypes.SHULKER))) {
                 throw new AssertionError();
             }
             BOAT_SHULKER_LIKE_COLLISION.clear();
