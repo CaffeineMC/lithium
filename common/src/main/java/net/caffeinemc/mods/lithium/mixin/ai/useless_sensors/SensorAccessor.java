@@ -8,11 +8,11 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface SensorAccessor {
 
     @Accessor("timeToTick")
-    long getLastSenseTime();
+    long getTimeToTick();
 
     @Accessor("scanRate")
     int getSenseInterval();
 
     @Accessor("timeToTick")
-    void setLastSenseTime(long lastSenseTime);
+    void setTimeToTick(long lastSenseTime);
 }

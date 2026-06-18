@@ -21,14 +21,14 @@ public class SensorHelper {
             // Removing the whole sensor could be an issue, since it may be serialized and used in a future version.
 
             //Instead of setting to Long.MAX_VALUE, we want to be able to recover the random offset of the sensor:
-            long lastSenseTime = sensorAccessor.getLastSenseTime();
+            long lastSenseTime = sensorAccessor.getTimeToTick();
             int senseInterval = sensorAccessor.getSenseInterval(); //Usual values: 20,40,80,200
 
             long maxMultipleOfSenseInterval = Long.MAX_VALUE - (Long.MAX_VALUE % senseInterval);
             maxMultipleOfSenseInterval -= senseInterval;
             maxMultipleOfSenseInterval += lastSenseTime;
 
-            sensorAccessor.setLastSenseTime(maxMultipleOfSenseInterval);
+            sensorAccessor.setTimeToTick(maxMultipleOfSenseInterval);
         }
     }
 
@@ -45,18 +45,18 @@ public class SensorHelper {
         //noinspection unchecked
         U sensor = (U) ((BrainAccessor<?>) brain).getSensors().get(sensorType);
         if (sensor instanceof SensorAccessor sensorAccessor) {
-            long lastSenseTime = sensorAccessor.getLastSenseTime();
+            long lastSenseTime = sensorAccessor.getTimeToTick();
             int senseInterval = sensorAccessor.getSenseInterval();
 
             //Recover the random offset of the sensor:
             if (lastSenseTime > senseInterval) {
                 lastSenseTime = lastSenseTime % senseInterval;
                 if (extraTick) {
-                    ((SensorAccessor) sensor).setLastSenseTime(0L);
+                    ((SensorAccessor) sensor).setTimeToTick(0L);
                     sensor.tick((ServerLevel) brainedEntity.level(), brainedEntity);
                 }
             }
-            sensorAccessor.setLastSenseTime(lastSenseTime);
+            sensorAccessor.setTimeToTick(lastSenseTime);
         }
     }
 }
