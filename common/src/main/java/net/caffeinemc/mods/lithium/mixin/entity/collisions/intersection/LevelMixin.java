@@ -9,6 +9,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.util.Optional;
@@ -25,8 +26,7 @@ public abstract class LevelMixin implements LevelAccessor {
      * @author 2No2Name
      */
     @Override
-    public boolean noCollision(@Nullable Entity entity, AABB box) {
-        //TODO vanilla makes all entities walk on lava AND water here like striders?
+    public boolean noCollision(@Nullable Entity entity, @NonNull AABB box) {
         boolean ret = !LithiumEntityCollisions.doesBoxCollideWithBlocks((Level) (Object) this, entity, box);
 
         // If no blocks were collided with, try to check for entity collisions if we can read entities
