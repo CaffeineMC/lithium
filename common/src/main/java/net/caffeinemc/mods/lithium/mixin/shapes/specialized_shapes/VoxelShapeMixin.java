@@ -132,17 +132,17 @@ public abstract class VoxelShapeMixin {
         int size = this.shape.getSize(axis);
 
         int start = 0;
-        int end = size + 1 - start;
+        int len = size + 1 - start;
 
-        while (end > 0) {
-            int middle = end / 2;
-            int idx = start + middle;
+        while (len > 0) {
+            int half = len / 2;
+            int middle = start + half;
 
-            if (idx >= 0 && (idx > size || coord < list.getDouble(idx))) {
-                end = middle;
+            if (middle >= 0 && (middle > size || coord < list.getDouble(middle))) {
+                len = half;
             } else {
-                start = idx + 1;
-                end -= middle + 1;
+                start = middle + 1;
+                len -= half + 1;
             }
         }
 
