@@ -164,7 +164,11 @@ NBT tags use a fastutil hashmap instead of a standard HashMap
 ### `mixin.alloc.shapes.matching`
 (default: `true`)  
 Use non-allocating voxel shape matching where applicable.
-    
+  
+### `mixin.alloc.shapes.slice`
+(default: `true`)  
+Avoid copying voxel shape slices. Currently only affects client fluid rendering.
+  
 ### `mixin.block`
 (default: `true`)  
 Optimizations related to blocks
