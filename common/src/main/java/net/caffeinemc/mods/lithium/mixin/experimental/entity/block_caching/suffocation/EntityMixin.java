@@ -1,5 +1,7 @@
 package net.caffeinemc.mods.lithium.mixin.experimental.entity.block_caching.suffocation;
 
+import com.llamalad7.mixinextras.sugar.Local;
+import net.caffeinemc.mods.lithium.common.shapes.offset_operations.LithiumOffsetShapes;
 import net.caffeinemc.mods.lithium.common.tracking.VicinityCache;
 import net.caffeinemc.mods.lithium.common.tracking.VicinityCacheProvider;
 import net.minecraft.core.BlockPos;
@@ -11,14 +13,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.BooleanOp;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin implements VicinityCacheProvider {
@@ -43,17 +42,16 @@ public abstract class EntityMixin implements VicinityCacheProvider {
                     value = "INVOKE",
                     target = "Lnet/minecraft/core/BlockPos;betweenClosedStream(Lnet/minecraft/world/phys/AABB;)Ljava/util/stream/Stream;",
                     shift = At.Shift.BEFORE
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD
+            )
     )
-    public void isInsideWall(CallbackInfoReturnable<Boolean> cir, float f, AABB box) {
+    public void isInsideWall(CallbackInfoReturnable<Boolean> cir, @Local(name = "eyeBb") AABB eyeBb) {
         // [VanillaCopy]
-        int minX = Mth.floor(box.minX);
-        int minY = Mth.floor(box.minY);
-        int minZ = Mth.floor(box.minZ);
-        int maxX = Mth.floor(box.maxX);
-        int maxY = Mth.floor(box.maxY);
-        int maxZ = Mth.floor(box.maxZ);
+        int minX = Mth.floor(eyeBb.minX);
+        int minY = Mth.floor(eyeBb.minY);
+        int minZ = Mth.floor(eyeBb.minZ);
+        int maxX = Mth.floor(eyeBb.maxX);
+        int maxY = Mth.floor(eyeBb.maxY);
+        int maxZ = Mth.floor(eyeBb.maxZ);
 
         VicinityCache bc = this.getUpdatedVicinityCache((Entity) (Object) this);
 
@@ -76,7 +74,6 @@ public abstract class EntityMixin implements VicinityCacheProvider {
         }
 
         BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
-        VoxelShape suffocationShape = null;
 
         boolean shouldCache = true;
 
@@ -91,12 +88,7 @@ public abstract class EntityMixin implements VicinityCacheProvider {
                             shouldCache = false;
                         }
 
-                        if (suffocationShape == null) {
-                            suffocationShape = Shapes.create(new AABB(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ));
-                        }
-                        if (Shapes.joinIsNotEmpty(blockState.getCollisionShape(this.level, blockPos).
-                                        move(blockPos.getX(), blockPos.getY(), blockPos.getZ()),
-                                suffocationShape, BooleanOp.AND)) {
+                        if (LithiumOffsetShapes.joinIsNotEmpty(blockState.getCollisionShape(this.level, blockPos), blockPos.getX(), blockPos.getY(), blockPos.getZ(), eyeBb, null, BooleanOp.AND)) {
                             if (shouldCache) {
                                 bc.setCachedIsSuffocating(true);
                             }

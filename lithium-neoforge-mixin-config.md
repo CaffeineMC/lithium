@@ -161,6 +161,10 @@ Remove lambda allocation in frequently called block blast resistance calculation
 (default: `true`)  
 NBT tags use a fastutil hashmap instead of a standard HashMap
   
+### `mixin.alloc.shapes.matching`
+(default: `true`)  
+Use non-allocating voxel shape matching where applicable.
+    
 ### `mixin.block`
 (default: `true`)  
 Optimizations related to blocks

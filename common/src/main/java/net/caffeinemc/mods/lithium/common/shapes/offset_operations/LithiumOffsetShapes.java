@@ -8,18 +8,25 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
 import static net.minecraft.core.Direction.Axis.*;
 
 public class LithiumOffsetShapes {
 
-    private static double getOffset(Direction.Axis axis, double offsetX, double offsetY, double offsetZ) {
-        return axis.choose(offsetX, offsetY, offsetZ);
+    public static double axisChoose(Direction.Axis axis, double offsetX, double offsetY, double offsetZ) {
+        if (axis == Direction.Axis.X) {
+            return offsetX;
+        }
+        if (axis == Direction.Axis.Y) {
+            return offsetY;
+        }
+        return offsetZ;
     }
 
     //Copied from VoxelShapesMatchesAnywhere, adapted to work with AABB and offset VoxelShapes without allocations
-    public static boolean joinIsNotEmpty(final VoxelShape firstWithoutOffset, double offsetX, double offsetY, double offsetZ, AABB aabb, VoxelShape entityShape, final BooleanOp op) {
+    public static boolean joinIsNotEmpty(final VoxelShape firstWithoutOffset, double offsetX, double offsetY, double offsetZ, AABB aabb, @Nullable VoxelShape aabbAsShape, final BooleanOp op) {
         final boolean firstEmpty = firstWithoutOffset.isEmpty();
         if (firstEmpty) {
             return op.apply(false, true);
@@ -28,7 +35,7 @@ public class LithiumOffsetShapes {
             boolean secondOnlyMatters = op.apply(false, true);
 
             for (Direction.Axis axis : AxisCycle.AXIS_VALUES) {
-                double axisOffset = getOffset(axis, offsetX, offsetY, offsetZ);
+                double axisOffset = axisChoose(axis, offsetX, offsetY, offsetZ);
                 if (firstWithoutOffset.max(axis) + axisOffset < aabb.min(axis) - 1.0E-7) {
                     return firstOnlyMatters || secondOnlyMatters;
                 }
@@ -104,7 +111,10 @@ public class LithiumOffsetShapes {
             }
             //Allocating fallback to vanilla only in case shape is non-empty and tiny (< 3e-7) on at least one axis
             VoxelShape first = firstWithoutOffset.move(offsetX, offsetY, offsetZ);
-            return Shapes.joinIsNotEmpty(first, entityShape, op);
+            if (aabbAsShape == null) {
+                aabbAsShape = Shapes.create(aabb);
+            }
+            return Shapes.joinIsNotEmpty(first, aabbAsShape, op);
         }
     }
 

@@ -63,6 +63,8 @@
     "alloc.explosion_behavior.EntityBasedExplosionDamageCalculatorMixin",
     "alloc.nbt.CompoundTagMixin",
     "alloc.nbt.CompoundTagMixin$Type",
+    "alloc.shapes.matching.AbstractBoatMixin",
+    "alloc.shapes.matching.EntityMixin",
     "block.flatten_states.FluidStateMixin",
     "block.fluid.flow.FlowingFluidMixin",
     "block.hopper.AbstractChestBoatMixin",
