@@ -10,7 +10,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * ChunkAwareBlockCollisionSweeperVoxelShape iterates over blocks in one chunk section at a time. Together with the chunk
@@ -366,7 +369,7 @@ public class ChunkAwareBlockCollisionSweeperVoxelShape extends ChunkAwareBlockCo
     }
 
     @Override
-    public @NonNull Iterator<VoxelShape> iterator() {
+    public @NonNull ChunkAwareBlockCollisionSweeperVoxelShape iterator() {
         this.setCursorToStart();
         return this;
     }

@@ -133,6 +133,10 @@ Reduce stream code usage when getting the passengers of an entity
 (default: `true`)  
 Avoid unnecessary indirection when iterating entities of an entity section.
   
+### `mixin.alloc.entity_movement_collisions`
+(default: `true`)  
+Avoid VoxelShape offset allocations in entity movement collision code.
+  
 ### `mixin.alloc.entity_tracker`
 (default: `true`)  
 Entity trackers use a fastutil set for storing players instead of an IdentityHashSet
