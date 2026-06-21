@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import net.caffeinemc.mods.lithium.common.entity.LithiumEntityCollisions;
 import net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeperVoxelShape;
-import net.caffeinemc.mods.lithium.common.util.collections.LazyList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -117,13 +116,12 @@ public abstract class EntityMixin {
         boolean shouldAddWorldBorder = true;
         // For 1-e7 margin behavior correctness, the last block collision must be last of all collisions
         boolean shouldAddLastBlock = true;
-        ChunkAwareBlockCollisionSweeperVoxelShape blockCollisionSweeper = new ChunkAwareBlockCollisionSweeperVoxelShape(world, entity, movementSpace, true);
+        ChunkAwareBlockCollisionSweeperVoxelShape blockCollisionSweeper = new ChunkAwareBlockCollisionSweeperVoxelShape(world, entity, movementSpace, true, !isSingleAxisMovement);
 
-        LazyList<VoxelShape> blockCollisions = new LazyList<>(new ArrayList<>(), blockCollisionSweeper);
         ArrayList<VoxelShape> worldBorderAndLastBlockCollision = new ArrayList<>(2);
 
         if (movementY != 0.0) {
-            movementY = Shapes.collide(Direction.Axis.Y, entityBoundingBox, blockCollisions, movementY);
+            movementY = Shapes.collide(Direction.Axis.Y, entityBoundingBox, blockCollisionSweeper, movementY);
             if (movementY != 0.0) {
                 shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpace);
                 //noinspection ConstantValue
@@ -144,7 +142,7 @@ public abstract class EntityMixin {
         }
         boolean zMovementBiggerThanXMovement = Math.abs(movementX) < Math.abs(movementZ);
         if (zMovementBiggerThanXMovement) {
-            movementZ = Shapes.collide(Direction.Axis.Z, entityBoundingBox, blockCollisions, movementZ);
+            movementZ = Shapes.collide(Direction.Axis.Z, entityBoundingBox, blockCollisionSweeper, movementZ);
             if (movementZ != 0.0) {
                 //noinspection DuplicatedCode
                 shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpace);
@@ -163,7 +161,7 @@ public abstract class EntityMixin {
             }
         }
         if (movementX != 0.0) {
-            movementX = Shapes.collide(Direction.Axis.X, entityBoundingBox, blockCollisions, movementX);
+            movementX = Shapes.collide(Direction.Axis.X, entityBoundingBox, blockCollisionSweeper, movementX);
             if (movementX != 0.0) {
                 shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpace);
                 shouldAddWorldBorder = LithiumEntityCollisions.addWorldBorderCollisionIfRequired(shouldAddWorldBorder, entity, worldBorderAndLastBlockCollision, movementSpace);
@@ -181,7 +179,7 @@ public abstract class EntityMixin {
             }
         }
         if (!zMovementBiggerThanXMovement && movementZ != 0.0) {
-            movementZ = Shapes.collide(Direction.Axis.Z, entityBoundingBox, blockCollisions, movementZ);
+            movementZ = Shapes.collide(Direction.Axis.Z, entityBoundingBox, blockCollisionSweeper, movementZ);
             if (movementZ != 0.0) {
                 //noinspection DuplicatedCode
                 shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpace);

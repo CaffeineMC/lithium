@@ -1,6 +1,7 @@
 package net.caffeinemc.mods.lithium.common.entity;
 
 import com.google.common.collect.AbstractIterator;
+import net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeperBlockPos;
 import net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeperVoxelShape;
 import net.caffeinemc.mods.lithium.common.util.Pos;
 import net.caffeinemc.mods.lithium.common.world.WorldHelper;
@@ -44,11 +45,8 @@ public class LithiumEntityCollisions {
      * @return True if the box (possibly that of an entity's) collided with any blocks
      */
     public static boolean doesBoxCollideWithBlocks(Level world, @Nullable Entity entity, AABB box) {
-        final ChunkAwareBlockCollisionSweeperVoxelShape sweeper = new ChunkAwareBlockCollisionSweeperVoxelShape(world, entity, box);
-
-        final VoxelShape shape = sweeper.computeNext();
-
-        return shape != null && !shape.isEmpty();
+        //hasNext() only returns true when there is a colliding shape (also non-null and not empty)
+        return new ChunkAwareBlockCollisionSweeperBlockPos(world, entity, box).hasNext();
     }
 
     /**
@@ -242,7 +240,7 @@ public class LithiumEntityCollisions {
 
     public static boolean addLastBlockCollisionIfRequired(boolean addLastBlockCollision, ChunkAwareBlockCollisionSweeperVoxelShape blockCollisionSweeper, List<VoxelShape> list) {
         if (addLastBlockCollision) {
-            VoxelShape lastCollision = blockCollisionSweeper.getLastCollision();
+            VoxelShape lastCollision = blockCollisionSweeper.getMaxCollision();
             if (lastCollision != null) {
                 list.add(lastCollision);
             }

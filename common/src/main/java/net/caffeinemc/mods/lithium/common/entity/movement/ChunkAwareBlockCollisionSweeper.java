@@ -1,6 +1,5 @@
 package net.caffeinemc.mods.lithium.common.entity.movement;
 
-import com.google.common.collect.AbstractIterator;
 import net.caffeinemc.mods.lithium.common.block.BlockCountingSection;
 import net.caffeinemc.mods.lithium.common.block.BlockStateFlags;
 import net.caffeinemc.mods.lithium.common.shapes.VoxelShapeCaster;
@@ -22,14 +21,16 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
+
 import static net.caffeinemc.mods.lithium.common.entity.LithiumEntityCollisions.EPSILON;
 
 /**
  * ChunkAwareBlockCollisionSweeper iterates over blocks in one chunk section at a time. Together with the chunk
  * section keeping track of the amount of oversized blocks inside the number of iterations can often be reduced.
  */
-public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterator<T> {
-    protected final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+public abstract class ChunkAwareBlockCollisionSweeper<T> implements Iterator<T> {
+    protected final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(); //Must only be modified by computeNext, as other methods rely on the position not being changed
 
     /**
      * The collision box being swept through the world.
@@ -61,7 +62,7 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterato
     private ChunkAccess cachedChunk;
     protected LevelChunkSection cachedChunkSection;
 
-    public ChunkAwareBlockCollisionSweeper(Level world, @Nullable Entity entity, AABB box, boolean hideLastCollision) {
+    public ChunkAwareBlockCollisionSweeper(Level world, @Nullable Entity entity, AABB box) {
         this.box = box;
         this.shape = Shapes.create(box);
         this.context = entity == null ? CollisionContext.empty() : CollisionContext.of(entity);
@@ -82,6 +83,31 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterato
 
         //decrement as first nextSection call will increment it again
         this.chunkX--;
+    }
+
+
+    protected void reset() {
+        this.chunkYIndex = 0;
+        this.cStartX = 0;
+        this.cStartZ = 0;
+        this.cEndX = 0;
+        this.cEndZ = 0;
+        this.cX = 0;
+        this.cY = 0;
+        this.cZ = 0;
+        this.sectionOversizedBlocks = false;
+        this.cachedChunk = null;
+        this.cachedChunkSection = null;
+
+        this.chunkX = Pos.ChunkCoord.fromBlockCoord(expandMin(this.minX));
+        this.chunkZ = Pos.ChunkCoord.fromBlockCoord(expandMin(this.minZ));
+
+        this.cIterated = 0;
+        this.cTotalSize = 0;
+
+        //decrement as first nextSection call will increment it again
+        this.chunkX--;
+        this.pos.set(0, 0, 0);
     }
 
     final protected boolean nextSection() {
@@ -164,22 +190,23 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterato
      * {@link VoxelShape} for full-cube shapes.
      *
      * @return a {@link VoxelShape} which contains the shape representing that which was collided with, otherwise
-     * {@code null}
+     * {@code null}. Note that the returned shape is not yet shifted by the given x,y,z coordinates.
      */
-    protected static VoxelShape getCollidedShape(AABB entityBox, VoxelShape entityShape, VoxelShape shape, int x, int y, int z) {
+    protected static VoxelShape getNonOffsetCollidedShape(AABB entityBox, VoxelShape entityShape, VoxelShape shape, int x, int y, int z) {
         if (shape == Shapes.block()) {
-            return entityBox.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0) ? shape.move(x, y, z) : null;
+            //[VanillaCopy] {@link BlockCollisions#computeNext()}
+            return entityBox.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0) ? shape : null;
         }
         if (shape instanceof VoxelShapeCaster) {
             if (((VoxelShapeCaster) shape).intersects(entityBox, x, y, z)) {
-                return shape.move(x, y, z);
+                return shape;
             } else {
                 return null;
             }
         }
 
         if (LithiumOffsetShapes.joinIsNotEmpty(shape, x, y, z, entityBox, entityShape, BooleanOp.AND)) {
-            return shape.move(x, y, z);
+            return shape;
         }
 
         return null;

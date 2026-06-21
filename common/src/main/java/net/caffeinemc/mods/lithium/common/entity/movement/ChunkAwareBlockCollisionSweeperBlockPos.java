@@ -9,20 +9,40 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.NoSuchElementException;
+
 
 public class ChunkAwareBlockCollisionSweeperBlockPos extends ChunkAwareBlockCollisionSweeper<BlockPos.MutableBlockPos> {
 
     public ChunkAwareBlockCollisionSweeperBlockPos(Level world, @Nullable Entity entity, AABB box) {
-        super(world, entity, box, false);
+        super(world, entity, box);
+    }
+
+
+    //Fields for iterator
+    private BlockPos.MutableBlockPos computedNext;
+
+    @Override
+    public boolean hasNext() {
+        return this.computedNext != null || ((this.computedNext = this.computeNext()) != null);
+    }
+
+    @Override
+    public BlockPos.MutableBlockPos next() {
+        BlockPos.MutableBlockPos next = this.computedNext;
+        if (next == null) {
+            throw new NoSuchElementException("Call hasNext() before next()!");
+        }
+        this.computedNext = null;
+        return next;
     }
 
     /**
      * Advances the sweep forward until finding a position with a box-colliding block.
      *
-     * @return the next position with a collision as {@link BlockPos.MutableBlockPos}, or {@link #endOfData()} when no collisions
+     * @return the next position with a collision as {@link BlockPos.MutableBlockPos}, or null when no collisions
      * are left
      */
-    @Override
     public BlockPos.MutableBlockPos computeNext() {
         while (true) {
             if (this.cIterated >= this.cTotalSize) {
@@ -82,7 +102,7 @@ public class ChunkAwareBlockCollisionSweeperBlockPos extends ChunkAwareBlockColl
             }
         }
 
-        return this.endOfData();
+        return null;
     }
 
 }
