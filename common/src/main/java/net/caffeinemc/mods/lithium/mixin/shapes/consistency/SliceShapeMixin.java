@@ -24,9 +24,12 @@ public abstract class SliceShapeMixin extends VoxelShape {
 
     /**
      * Vanilla has multiple issues with SubShape:
-     * The start and end indices are assumed to not be an overestimate, but exact everywhere in the code. Vanilla
-     * doesn't check this and thus allows SubShape to appear larger than it is to some function calls.
-     * Vanilla sometimes creates SubShapes with negative start indices.
+     * The start and end indices are assumed to not be an overestimate but assumed to be exact everywhere in the code.
+     * Vanilla doesn't check this and thus allows SubShape to appear larger than it is to some function calls.
+     * This happens when slicing shapes that are not a single cuboid.
+     * <p>
+     * Vanilla sometimes creates SubShapes with negative start indices - leading to IndexOutOfBoundsException
+     * when actually using certain methods that SlicedShape inherits.
      * <p>
      * This mixin fixes both issues.
      */
