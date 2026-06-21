@@ -33,7 +33,7 @@ public class LithiumOffsetCollide {
      * @author 2No2Name
      */
     protected static double collideXAsOffsetShape(VoxelShape voxelShape, int offset1, int offset2, int offset3, AxisCycle cycleDirection, AABB box, double maxDist) {
-
+        //TODO use more efficient special implementations of VoxelShape subclasses - currently no offset variant exists
         if (voxelShape.isEmpty()) {
             return maxDist;
         }
