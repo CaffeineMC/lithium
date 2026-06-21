@@ -45,72 +45,70 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
 
     @Override
     public VoxelShape move(double x, double y, double z) {
+        if (x == 0 && y == 0 && z == 0) {
+            return this;
+        }
         return new VoxelShapeSimpleCube(this.shape, this.minX + x, this.minY + y, this.minZ + z, this.maxX + x, this.maxY + y, this.maxZ + z);
     }
 
     @Override
-    public double collideX(AxisCycle cycleDirection, AABB box, double maxDist) {
+    public double collideX(AxisCycle cycleDirection, AABB moving, double maxDist) {
         if (Math.abs(maxDist) < EPSILON) {
             return 0.0D;
         }
 
-        double penetration = this.calculatePenetration(cycleDirection, box, maxDist);
+        return switch (cycleDirection) {
+            case NONE ->
+                    limitMovement(maxDist, moving.minX, moving.maxX, moving.minY, moving.maxY, moving.minZ, moving.maxZ, this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ);
+            case FORWARD ->
+                    limitMovement(maxDist, moving.minZ, moving.maxZ, moving.minX, moving.maxX, moving.minY, moving.maxY, this.minZ, this.maxZ, this.minX, this.maxX, this.minY, this.maxY);
+            case BACKWARD ->
+                    limitMovement(maxDist, moving.minY, moving.maxY, moving.minZ, moving.maxZ, moving.minX, moving.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.minX, this.maxX);
+        };
+    }
 
-        if ((penetration != maxDist) && this.intersects(cycleDirection, box)) {
-            return penetration;
+    private static double limitMovement(double maxDist, double bMinA, double bMaxA, double bMinB, double bMaxB, double bMinC, double bMaxC, double sMinA, double sMaxA, double sMinB, double sMaxB, double sMinC, double sMaxC) {
+        double maxMovement = VoxelShapeSimpleCube.limitMovement(maxDist, sMinA, sMaxA, bMinA, bMaxA);
+        if (maxMovement != maxDist && hasOverlapFIE(sMinB, sMaxB, bMinB, bMaxB) && hasOverlapFIE(sMinC, sMaxC, bMinC, bMaxC)) {
+            return maxMovement;
         }
-
         return maxDist;
     }
 
-    private double calculatePenetration(AxisCycle dir, AABB box, double maxDist) {
-        switch (dir) {
-            case NONE:
-                return VoxelShapeSimpleCube.calculatePenetration(this.minX, this.maxX, box.minX, box.maxX, maxDist);
-            case FORWARD:
-                return VoxelShapeSimpleCube.calculatePenetration(this.minZ, this.maxZ, box.minZ, box.maxZ, maxDist);
-            case BACKWARD:
-                return VoxelShapeSimpleCube.calculatePenetration(this.minY, this.maxY, box.minY, box.maxY, maxDist);
-            default:
-                throw new IllegalArgumentException();
-        }
+    /**
+     * Epsilon and < vs. <= behavior given by {@link VoxelShape#collideX(AxisCycle, AABB, double)}:
+     * Box is effectively shrunk by 1e-7, comparisons always with boxcoord (+-EPSILON) < shapecoord
+     * cf. {@link VoxelShape#findIndex(Direction.Axis, double)}
+     * <p>
+     * Method named after FindIndex and Epsilon to indicate its exact behavior in the name.
+     */
+    public static boolean hasOverlapFIE(double sMinA, double sMaxA, double bMinA, double bMaxA) {
+        return !(bMaxA - EPSILON < sMinA) && bMinA + EPSILON < sMaxA;
     }
 
-    boolean intersects(AxisCycle dir, AABB box) {
-        switch (dir) {
-            case NONE:
-                return lessThan(this.minY, box.maxY) && lessThan(box.minY, this.maxY) && lessThan(this.minZ, box.maxZ) && lessThan(box.minZ, this.maxZ);
-            case FORWARD:
-                return lessThan(this.minX, box.maxX) && lessThan(box.minX, this.maxX) && lessThan(this.minY, box.maxY) && lessThan(box.minY, this.maxY);
-            case BACKWARD:
-                return lessThan(this.minZ, box.maxZ) && lessThan(box.minZ, this.maxZ) && lessThan(this.minX, box.maxX) && lessThan(box.minX, this.maxX);
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
-    private static double calculatePenetration(double a1, double a2, double b1, double b2, double maxDist) {
-        double penetration;
+    private static double limitMovement(double maxDist, double sMin, double sMax, double bMin, double bMax) {
+        double maxMovement;
 
         if (maxDist > 0.0D) {
-            penetration = a1 - b2;
+            maxMovement = sMin - bMax;
 
-            if ((penetration < -EPSILON) || (maxDist < penetration)) {
+            if (!(bMax - EPSILON < sMin) || maxDist < maxMovement) {
                 //already far enough inside this shape to not collide with the surface or
                 //outside the shape and still far enough away for no collision at all
+                //Vanilla: Shrink box by EPSILON, then use coord < voxelShapeBoundary as boundary
                 return maxDist;
             }
             //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
         } else {
             //whole code again, just negated for the other direction
-            penetration = a2 - b1;
+            maxMovement = sMax - bMin;
 
-            if ((penetration > EPSILON) || (maxDist > penetration)) {
+            if (bMin + EPSILON < sMax || maxDist > maxMovement) {
                 return maxDist;
             }
         }
 
-        return penetration;
+        return maxMovement;
     }
 
     @Override
@@ -135,40 +133,32 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
 
     @Override
     public double get(Direction.Axis axis, int index) {
-        if ((index < 0) || (index > 1)) {
+        if (index < 0 || index > 1) {
             throw new ArrayIndexOutOfBoundsException();
         }
 
-        switch (axis) {
-            case X:
-                return (index == 0) ? this.minX : this.maxX;
-            case Y:
-                return (index == 0) ? this.minY : this.maxY;
-            case Z:
-                return (index == 0) ? this.minZ : this.maxZ;
-        }
+        return switch (axis) {
+            case X -> index == 0 ? this.minX : this.maxX;
+            case Y -> index == 0 ? this.minY : this.maxY;
+            case Z -> index == 0 ? this.minZ : this.maxZ;
+        };
 
-        throw new IllegalArgumentException();
     }
 
     @Override
     public DoubleList getCoords(Direction.Axis axis) {
-        switch (axis) {
-            case X:
-                return DoubleArrayList.wrap(new double[]{this.minX, this.maxX});
-            case Y:
-                return DoubleArrayList.wrap(new double[]{this.minY, this.maxY});
-            case Z:
-                return DoubleArrayList.wrap(new double[]{this.minZ, this.maxZ});
-        }
+        return switch (axis) {
+            case X -> DoubleArrayList.wrap(new double[] { this.minX, this.maxX });
+            case Y -> DoubleArrayList.wrap(new double[] { this.minY, this.maxY });
+            case Z -> DoubleArrayList.wrap(new double[] { this.minZ, this.maxZ });
+        };
 
-        throw new IllegalArgumentException();
     }
 
 
     @Override
     public boolean isEmpty() {
-        return (this.minX >= this.maxX) || (this.minY >= this.maxY) || (this.minZ >= this.maxZ);
+        return this.minX >= this.maxX || this.minY >= this.maxY || this.minZ >= this.maxZ;
     }
 
     @Override
@@ -184,15 +174,11 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
         return 0;
     }
 
-    private static boolean lessThan(double a, double b) {
-        return (a + EPSILON) < b;
-    }
-
     @Override
-    public boolean intersects(AABB box, double blockX, double blockY, double blockZ) {
-        return (box.minX < ((this.maxX + blockX) - 1e-7)) && ((box.maxX - 1e-7) > (this.minX + blockX)) &&
-                (box.minY < ((this.maxY + blockY) - 1e-7)) && ((box.maxY - 1e-7) > (this.minY + blockY)) &&
-                (box.minZ < ((this.maxZ + blockZ) - 1e-7)) && ((box.maxZ - 1e-7) > (this.minZ + blockZ));
+    public boolean intersectsJNE(AABB box, double blockX, double blockY, double blockZ) {
+        return box.minX < this.maxX + blockX - 1e-7 && this.minX + blockX < box.maxX - 1e-7 &&
+                box.minY < this.maxY + blockY - 1e-7 && this.minY + blockY < box.maxY - 1e-7 &&
+                box.minZ < this.maxZ + blockZ - 1e-7 && this.minZ + blockZ < box.maxZ - 1e-7;
     }
 
 

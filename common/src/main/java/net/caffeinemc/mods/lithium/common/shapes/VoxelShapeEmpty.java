@@ -47,7 +47,7 @@ public class VoxelShapeEmpty extends VoxelShape implements VoxelShapeCaster {
     }
 
     @Override
-    public boolean intersects(AABB box, double blockX, double blockY, double blockZ) {
+    public boolean intersectsJNE(AABB box, double blockX, double blockY, double blockZ) {
         return false;
     }
 }

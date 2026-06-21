@@ -198,7 +198,7 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> implements Iterator<T> 
             return entityBox.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0) ? shape : null;
         }
         if (shape instanceof VoxelShapeCaster) {
-            if (((VoxelShapeCaster) shape).intersects(entityBox, x, y, z)) {
+            if (((VoxelShapeCaster) shape).intersectsJNE(entityBox, x, y, z)) {
                 return shape;
             } else {
                 return null;
@@ -218,7 +218,7 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> implements Iterator<T> 
             return entityBox.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0);
         }
         if (shape instanceof VoxelShapeCaster) {
-            return ((VoxelShapeCaster) shape).intersects(entityBox, x, y, z);
+            return ((VoxelShapeCaster) shape).intersectsJNE(entityBox, x, y, z);
         }
         return LithiumOffsetShapes.joinIsNotEmpty(shape, x, y, z, entityBox, entityShape, BooleanOp.AND);
     }

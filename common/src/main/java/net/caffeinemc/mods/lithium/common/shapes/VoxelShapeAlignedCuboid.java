@@ -31,7 +31,7 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
         if (xRes > 3 || yRes > 3 || zRes > 3 || xRes < 0 || yRes < 0 || zRes < 0) {
             throw new IllegalArgumentException("Resolution must be between 0 and 3");
         }
-        
+
         this.xyzResolution = (byte) (xRes << 4 | yRes << 2 | zRes);
     }
 
@@ -45,88 +45,94 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
 
     @Override
     public VoxelShape move(double x, double y, double z) {
+        if (x == 0 && y == 0 && z == 0) {
+            return this;
+        }
         return new VoxelShapeAlignedCuboidOffset(this, this.shape, x, y, z);
     }
 
 
     @Override
-    public double collideX(AxisCycle cycleDirection, AABB box, double maxDist) {
+    public double collideX(AxisCycle cycleDirection, AABB moving, double maxDist) {
         if (Math.abs(maxDist) < EPSILON) {
             return 0.0D;
         }
 
-        double penetration = this.calculatePenetration(cycleDirection, box, maxDist);
+        return switch (cycleDirection) {
+            case NONE ->
+                    limitMovement(maxDist, this.getXSegments(), moving.minX, moving.maxX, moving.minY, moving.maxY, moving.minZ, moving.maxZ, this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ);
+            case FORWARD ->
+                    limitMovement(maxDist, this.getZSegments(), moving.minZ, moving.maxZ, moving.minX, moving.maxX, moving.minY, moving.maxY, this.minZ, this.maxZ, this.minX, this.maxX, this.minY, this.maxY);
+            case BACKWARD ->
+                    limitMovement(maxDist, this.getYSegments(), moving.minY, moving.maxY, moving.minZ, moving.maxZ, moving.minX, moving.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.minX, this.maxX);
+        };
+    }
 
-        if ((penetration != maxDist) && this.intersects(cycleDirection, box)) {
-            return penetration;
+    private static double limitMovement(double maxDist, int segmentsA, double bMinA, double bMaxA, double bMinB, double bMaxB, double bMinC, double bMaxC, double sMinA, double sMaxA, double sMinB, double sMaxB, double sMinC, double sMaxC) {
+        double maxMovement = VoxelShapeAlignedCuboid.limitMovement(maxDist, segmentsA, sMinA, sMaxA, bMinA, bMaxA);
+        if (maxMovement != maxDist && hasOverlapFIE(sMinB, sMaxB, bMinB, bMaxB) && hasOverlapFIE(sMinC, sMaxC, bMinC, bMaxC)) {
+            return maxMovement;
         }
-
         return maxDist;
     }
 
-    private double calculatePenetration(AxisCycle dir, AABB box, double maxDist) {
-        switch (dir) {
-            case NONE:
-                return VoxelShapeAlignedCuboid.calculatePenetration(this.minX, this.maxX, this.getXSegments(), box.minX, box.maxX, maxDist);
-            case FORWARD:
-                return VoxelShapeAlignedCuboid.calculatePenetration(this.minZ, this.maxZ, this.getZSegments(), box.minZ, box.maxZ, maxDist);
-            case BACKWARD:
-                return VoxelShapeAlignedCuboid.calculatePenetration(this.minY, this.maxY, this.getYSegments(), box.minY, box.maxY, maxDist);
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
-    /**
-     * Determine how far the movement is possible.
-     */
-    private static double calculatePenetration(double aMin, double aMax, final int segmentsPerUnit, double bMin, double bMax, double maxDist) {
-        double gap;
+    private static double limitMovement(double maxDist, int segments, double sMin, double sMax, double bMin, double bMax) {
+        double maxMovement;
 
         if (maxDist > 0.0D) {
-            gap = aMin - bMax;
+            maxMovement = sMin - bMax;
 
-            if (gap >= -EPSILON) {
-                //outside the shape/within margin, move up to/back to boundary
-                return Math.min(gap, maxDist);
-            } else {
+            if (maxDist < maxMovement) {
+                //outside the shape and still far enough away for no collision at all
+                return maxDist;
+            }
+            double max = bMax - EPSILON;
+            if (!(max < sMin)) {
                 //already far enough inside this shape to not collide with the surface
-                if (segmentsPerUnit == 1) {
-                    //no extra segments to collide with, because only one segment in total
+                //Vanilla: Shrink box by EPSILON, then use coord < voxelShapeBoundary as boundary
+
+                //Now the extra inner walls (due to segments) have to checked
+                if (segments == 1) {
                     return maxDist;
                 }
-                //extra segment walls / hitboxes inside this shape, evenly spaced out in 0..1
-                //round to the next segment wall, but with epsilon margin like vanilla
-                double wallPos = Mth.ceil((bMax - EPSILON) * segmentsPerUnit) / (double) segmentsPerUnit;
-                //only use the wall when it is actually inside the shape, and not a border / outside the shape
-                if (wallPos < aMax - LARGE_EPSILON) {
-                    return Math.min(maxDist, wallPos - bMax);
+                int nextWallIndex = findIndex(max, segments) + 1; // findIndex returns the lower wall, +1 as this is towards positive
+                //The outermost walls (non-inner wall) only have collision if movement direction is towards the shape from the outside
+                double wall = nextWallIndex / (double) segments;
+                boolean isNotBackWall = wall < sMax - LARGE_EPSILON;
+                if (isNotBackWall) {
+                    return Math.min(maxDist, wall - bMax);
                 }
                 return maxDist;
             }
+            //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
         } else {
-            //whole code again, just negated for the other direction
-            gap = aMax - bMin;
+            maxMovement = sMax - bMin;
 
-            if (gap <= EPSILON) {
-                //outside the shape/within margin, move up to/back to boundary
-                return Math.max(gap, maxDist);
-            } else {
+            if (maxDist > maxMovement) {
+                //outside the shape and still far enough away for no collision at all
+                return maxDist;
+            }
+            double min = bMin + EPSILON;
+            if (min < sMax) {
                 //already far enough inside this shape to not collide with the surface
-                if (segmentsPerUnit == 1) {
-                    //no extra segments to collide with, because only one segment in total
+                //Vanilla: Shrink box by EPSILON, then use coord < voxelShapeBoundary as boundary
+
+                //Now the extra inner walls (due to segments) have to checked
+                if (segments == 1) {
                     return maxDist;
                 }
-                //extra segment walls / hitboxes inside this shape, evenly spaced out in 0..1
-                //round to the next segment wall, but with epsilon margin like vanilla
-                double wallPos = Mth.floor((bMin + EPSILON) * segmentsPerUnit) / (double) segmentsPerUnit;
-                //only use the wall when it is actually inside the shape, and not a border / outside the shape
-                if (wallPos > aMin + LARGE_EPSILON) {
-                    return Math.max(maxDist, wallPos - bMin);
+                int nextWallIndex = findIndex(min, segments); // findIndex returns the lower wall, no +1 as this is towards negative
+                //The outermost walls (non-inner wall) only have collision if movement direction is towards the shape from the outside
+                double wall = nextWallIndex / (double) segments;
+                boolean isNotBackWall = wall > sMin + LARGE_EPSILON; //Wall #0 is the negative outer wall
+                if (isNotBackWall) {
+                    return Math.max(maxDist, wall - bMin);
                 }
                 return maxDist;
             }
+            //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
         }
+        return maxMovement;
     }
 
     @Override
@@ -149,12 +155,26 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
 
     @Override
     protected int findIndex(Direction.Axis axis, double coord) {
-        int i = switch (axis) {
+        int segments = switch (axis) {
             case X -> this.getXSegments();
             case Y -> this.getYSegments();
             case Z -> this.getZSegments();
         };
-        return Mth.clamp(Mth.floor(coord * (double) i), -1, i);
+        return findIndex(coord, segments);
+    }
+
+    private static int findIndex(double coord, int segments) {
+        //Add some epsilon to avoid underestimating the index here.
+        int index = Mth.floor((coord + EPSILON) * (double) segments);
+
+        //Perform the vanilla check from the binary search once, since index could be slightly over the boundary due to floating point rounding error (and added some epsilon)
+        double boundary = index / (double) segments;
+        if (coord < boundary) {
+            index--;
+        }
+        //No need to check underestimated index, since some epsilon was added above to avoid underestimation.
+
+        return Mth.clamp(index, -1, segments);
     }
 
     protected int getXSegments() {
@@ -162,7 +182,7 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
     }
 
     protected int getYSegments() {
-        return 1 << ((this.xyzResolution >>> 2) & 3);
+        return 1 << (this.xyzResolution >>> 2 & 3);
     }
 
     protected int getZSegments() {
