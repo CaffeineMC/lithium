@@ -136,7 +136,7 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
     }
 
     @Override
-    protected double get(Direction.Axis axis, int index) {
+    public double get(Direction.Axis axis, int index) {
         return switch (axis) {
             case X -> this.xOffset + (double) index / (double) this.getXSegments();
             case Y -> this.yOffset + (double) index / (double) this.getYSegments();

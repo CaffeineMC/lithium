@@ -139,7 +139,7 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
     }
 
     @Override
-    protected double get(Direction.Axis axis, int index) {
+    public double get(Direction.Axis axis, int index) {
         return switch (axis) {
             case X -> (double) index / (double) this.getXSegments();
             case Y -> (double) index / (double) this.getYSegments();

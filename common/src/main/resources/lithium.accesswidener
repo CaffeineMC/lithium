@@ -26,3 +26,4 @@ accessible class net/minecraft/world/level/chunk/LevelChunk$RebindableTickingBlo
 accessible method net/minecraft/world/level/chunk/storage/SectionStorage getOrLoad (J)Ljava/util/Optional;
 accessible method net/minecraft/world/entity/ai/village/poi/PoiRecord acquireTicket ()Z
 accessible class net/minecraft/world/entity/ai/behavior/AcquirePoi$JitteredLinearRetry
+accessible method net/minecraft/world/phys/shapes/VoxelShape get (Lnet/minecraft/core/Direction$Axis;I)D

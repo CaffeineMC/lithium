@@ -3,13 +3,14 @@ package net.caffeinemc.mods.lithium.common.shapes;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import java.util.List;
 import net.minecraft.core.AxisCycle;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+import java.util.List;
 
 /**
  * An efficient implementation of {@link VoxelShape} for a shape with one simple cuboid. Since there are only ever two
@@ -133,7 +134,7 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
     }
 
     @Override
-    protected double get(Direction.Axis axis, int index) {
+    public double get(Direction.Axis axis, int index) {
         if ((index < 0) || (index > 1)) {
             throw new ArrayIndexOutOfBoundsException();
         }
