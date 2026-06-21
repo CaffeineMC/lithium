@@ -186,6 +186,17 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterato
         return null;
     }
 
+    //Equivalent of getCollidedShape(AABB entityBox, VoxelShape entityShape, VoxelShape shape, int x, int y, int z) != null
+    protected static boolean isColliding(AABB entityBox, VoxelShape entityShape, VoxelShape shape, int x, int y, int z) {
+        if (shape == Shapes.block()) {
+            return entityBox.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0);
+        }
+        if (shape instanceof VoxelShapeCaster) {
+            return ((VoxelShapeCaster) shape).intersects(entityBox, x, y, z);
+        }
+        return Shapes.joinIsNotEmpty(shape.move(x, y, z), entityShape, BooleanOp.AND);
+    }
+
     private static int expandMin(int coord) {
         return coord - 1;
     }

@@ -76,8 +76,7 @@ public class ChunkAwareBlockCollisionSweeperBlockPos extends ChunkAwareBlockColl
 
             //noinspection ConstantValue
             if (collisionShape != null && collisionShape != Shapes.empty() /* collisionShape should never be null, but we received crash reports. */) {
-                VoxelShape collidedShape = getCollidedShape(this.box, this.shape, collisionShape, x, y, z);
-                if (collidedShape != null) {
+                if (isColliding(this.box, this.shape, collisionShape, x, y, z)) {
                     return this.pos;
                 }
             }
