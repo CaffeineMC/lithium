@@ -190,9 +190,9 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
 
     @Override
     public boolean intersects(AABB box, double blockX, double blockY, double blockZ) {
-        return ((box.minX + 1e-7) < (this.maxX + blockX)) && ((box.maxX - 1e-7) > (this.minX + blockX)) &&
-                ((box.minY + 1e-7) < (this.maxY + blockY)) && ((box.maxY - 1e-7) > (this.minY + blockY)) &&
-                ((box.minZ + 1e-7) < (this.maxZ + blockZ)) && ((box.maxZ - 1e-7) > (this.minZ + blockZ));
+        return (box.minX < ((this.maxX + blockX) - 1e-7)) && ((box.maxX - 1e-7) > (this.minX + blockX)) &&
+                (box.minY < ((this.maxY + blockY) - 1e-7)) && ((box.maxY - 1e-7) > (this.minY + blockY)) &&
+                (box.minZ < ((this.maxZ + blockZ) - 1e-7)) && ((box.maxZ - 1e-7) > (this.minZ + blockZ));
     }
 
 
