@@ -523,6 +523,12 @@ Reduce allocations when using vanilla voxel shape classes.
 (default: `true`)  
 Use a faster collection for the full cube test cache
   
+### `mixin.shapes.consistency`
+(default: `true`)  
+Fix SliceShape VoxelShapes misrepresenting their size.  
+Non-vanilla behavior:
+  Might fix some VoxelShape related bugs, no known contraption or gameplay depends on any of this bugged vanilla behavior.
+  
 ### `mixin.shapes.lazy_shape_context`
 (default: `true`)  
 Entity shape contexts initialize rarely used fields only on first use

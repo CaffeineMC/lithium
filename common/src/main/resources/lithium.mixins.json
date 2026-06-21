@@ -186,6 +186,7 @@
     "shapes.alloc.SliceShapeMixin",
     "shapes.alloc.VoxelShapeInvoker",
     "shapes.blockstate_cache.BlockMixin",
+    "shapes.consistency.SliceShapeMixin",
     "shapes.lazy_shape_context.EntityCollisionContextMixin",
     "shapes.optimized_matching.ShapesMixin",
     "shapes.precompute_shape_arrays.CubePointRangeMixin",
