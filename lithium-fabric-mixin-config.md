@@ -521,6 +521,10 @@ Store the server and client profiler in static fields to avoid a map lookup. Ski
 (default: `true`)  
 Various VoxelShape optimizations
   
+### `mixin.shapes.alloc`
+(default: `true`)  
+Reduce allocations when using vanilla voxel shape classes.
+  
 ### `mixin.shapes.blockstate_cache`
 (default: `true`)  
 Use a faster collection for the full cube test cache
