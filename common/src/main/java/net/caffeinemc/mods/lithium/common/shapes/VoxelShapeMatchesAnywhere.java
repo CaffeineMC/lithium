@@ -9,6 +9,7 @@ import static net.minecraft.core.Direction.Axis.*;
 
 public class VoxelShapeMatchesAnywhere {
 
+    //Note: When changing this, make sure to update LithiumOffsetShapes as well, as it copies/adapts this code!
     public static void cuboidMatchesAnywhere(VoxelShape shapeA, VoxelShape shapeB, BooleanOp predicate, CallbackInfoReturnable<Boolean> cir) {
         //calling this method only if both shapes are not empty and have bounding box overlap
 

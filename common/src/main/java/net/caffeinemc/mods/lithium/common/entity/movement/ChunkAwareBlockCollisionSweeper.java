@@ -4,6 +4,7 @@ import com.google.common.collect.AbstractIterator;
 import net.caffeinemc.mods.lithium.common.block.BlockCountingSection;
 import net.caffeinemc.mods.lithium.common.block.BlockStateFlags;
 import net.caffeinemc.mods.lithium.common.shapes.VoxelShapeCaster;
+import net.caffeinemc.mods.lithium.common.shapes.offset_operations.LithiumOffsetShapes;
 import net.caffeinemc.mods.lithium.common.util.Pos;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -177,10 +178,8 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterato
             }
         }
 
-        shape = shape.move(x, y, z);
-
-        if (Shapes.joinIsNotEmpty(shape, entityShape, BooleanOp.AND)) {
-            return shape;
+        if (LithiumOffsetShapes.joinIsNotEmpty(shape, x, y, z, entityBox, entityShape, BooleanOp.AND)) {
+            return shape.move(x, y, z);
         }
 
         return null;
@@ -194,7 +193,7 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterato
         if (shape instanceof VoxelShapeCaster) {
             return ((VoxelShapeCaster) shape).intersects(entityBox, x, y, z);
         }
-        return Shapes.joinIsNotEmpty(shape.move(x, y, z), entityShape, BooleanOp.AND);
+        return LithiumOffsetShapes.joinIsNotEmpty(shape, x, y, z, entityBox, entityShape, BooleanOp.AND);
     }
 
     private static int expandMin(int coord) {
