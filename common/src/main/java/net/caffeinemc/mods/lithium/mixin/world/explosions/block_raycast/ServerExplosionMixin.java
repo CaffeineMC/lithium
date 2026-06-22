@@ -129,7 +129,9 @@ public abstract class ServerExplosionMixin implements LithiumExplosion {
 
 
     /**
-     * Whether the explosion cares about air blocks. If false, air blocks do not have to be added to the set of destroyed blocks.
+     * Whether the explosion cares about air blocks. If >= 1, air blocks do not have to be added to the set of destroyed blocks.
+     * 2 is used to indicate that the total number of exploded blocks is unused, thus counting the number of air blocks that would
+     * have exploded is not needed.
      * Skipping air blocks reduces the number of BlockPos allocations, shuffling and getBlockState calls in {@link ServerExplosion#interactWithBlocks(List)}
      */
     @SuppressWarnings("JavadocReference")
