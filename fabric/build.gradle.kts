@@ -89,6 +89,8 @@ afterEvaluate {
     loom.runs.configureEach {
         // https://fabricmc.net/wiki/tutorial:mixin_hotswaps
         vmArg("-javaagent:${ configurations.compileClasspath.get().find { it.name.contains("sponge-mixin") } }")
+        vmArg("-XX:+UnlockDiagnosticVMOptions")
+        vmArg("-XX:+DebugNonSafepoints")
         vmArg("-Dmixin.debug.export=true")
         vmArg("-Dmixin.debug=true")
     }
