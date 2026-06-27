@@ -8,7 +8,11 @@ Lithium _LithiumVersion_ is the first release for Minecraft _MCVersion_.
 
 Make sure to take a backup of your world before using the mod and please report any bugs and mod compatibility issues at the [issue tracker](https://github.com/CaffeineMC/lithium-fabric/issues). You can check the [description of each optimization](https://github.com/CaffeineMC/lithium/blob/_ReleaseTag_/lithium-mixin-config.md) and how to disable it when encountering a problem.
 
-## Additions
-- Reduce allocations in entity explosion exposure raycasts
-- Use caching in entity explosion exposure block access
-- Add isDescending to lazy shape context optimization
+## Changes
+- Include tag-playing villager baby sensor in adult sensor optimization
+
+## Fixes
+- Fix explosion no air counting optimization breaking visual explosion size since Lithium 0.24.5
+- Fix supporting block movement shortcut not offsetting VoxelShape
+- Avoid crashing when modded levels with broken registries are created
+- Fix adult sensor optimization only applying to animals that grew up since last reload
