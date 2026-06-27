@@ -1,5 +1,6 @@
 package net.caffeinemc.mods.lithium.mixin.ai.useless_sensors.baby_specific_sensors;
 
+import com.google.common.collect.ImmutableList;
 import net.caffeinemc.mods.lithium.common.ai.brain.SensorHelper;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.world.entity.AgeableMob;
@@ -60,6 +61,10 @@ public abstract class AgeableMobMixin extends LivingEntity {
             SensorHelper.disableSensor((AgeableMob) (Object) this, SensorType.NEAREST_ADULT); //Applies to most brained animals following adult animals
             if ((Object) this instanceof Villager) {
                 SensorHelper.disableSensor((AgeableMob) (Object) this, SensorType.VILLAGER_BABIES); //Villager play package only applies to villager babies
+
+                if (this.getBrain().hasMemoryValue(MemoryModuleType.VISIBLE_VILLAGER_BABIES)) {
+                    this.getBrain().setMemory(MemoryModuleType.VISIBLE_VILLAGER_BABIES, ImmutableList.of());
+                }
             }
 
             if (this.getBrain().hasMemoryValue(MemoryModuleType.NEAREST_VISIBLE_ADULT)) {
