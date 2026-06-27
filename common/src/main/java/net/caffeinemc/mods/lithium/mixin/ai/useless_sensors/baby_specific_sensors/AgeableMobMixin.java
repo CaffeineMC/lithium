@@ -7,7 +7,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.animal.happyghast.HappyGhast;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
@@ -54,17 +53,11 @@ public abstract class AgeableMobMixin extends LivingEntity {
         }
         if (isBaby()) {
             SensorHelper.enableSensor((AgeableMob) (Object) this, SensorType.NEAREST_ADULT, true);
-            if ((Object) this instanceof HappyGhast) {
-                SensorHelper.enableSensor((AgeableMob) (Object) this, SensorType.NEAREST_ADULT_ANY_TYPE);
-            }
             if ((Object) this instanceof Villager) {
                 SensorHelper.enableSensor((AgeableMob) (Object) this, SensorType.VILLAGER_BABIES);
             }
         } else {
             SensorHelper.disableSensor((AgeableMob) (Object) this, SensorType.NEAREST_ADULT); //Applies to most brained animals following adult animals
-            if ((Object) this instanceof HappyGhast) {
-                SensorHelper.disableSensor((AgeableMob) (Object) this, SensorType.NEAREST_ADULT_ANY_TYPE); //Only applies to baby happy ghast, adult happy ghasts use the non-brain goal selector system
-            }
             if ((Object) this instanceof Villager) {
                 SensorHelper.disableSensor((AgeableMob) (Object) this, SensorType.VILLAGER_BABIES); //Villager play package only applies to villager babies
             }
