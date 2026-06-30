@@ -165,7 +165,7 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterato
      * @return a {@link VoxelShape} which contains the shape representing that which was collided with, otherwise
      * {@code null}
      */
-    protected static VoxelShape getCollidedShape(AABB entityBox, VoxelShape entityShape, VoxelShape shape, int x, int y, int z) {
+    public static VoxelShape getCollidedShape(AABB entityBox, VoxelShape entityShape, VoxelShape shape, int x, int y, int z) {
         if (shape == Shapes.block()) {
             return entityBox.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0) ? shape.move(x, y, z) : null;
         }

@@ -92,7 +92,7 @@ public abstract class EntityMixin {
 
         if (movementY < 0D) {
             //Downwards / gravity optimization: Check supporting block or directly below center of entity first
-            VoxelShape voxelShape = LithiumEntityCollisions.getSupportingCollisionForEntity(world, entity, entityBoundingBox);
+            VoxelShape voxelShape = LithiumEntityCollisions.getSupportingCollisionForEntity(world, entity, entityBoundingBox, movement);
             if (voxelShape != null) {
                 double v = voxelShape.collide(Direction.Axis.Y, entityBoundingBox, movementY);
                 if (v == 0) {

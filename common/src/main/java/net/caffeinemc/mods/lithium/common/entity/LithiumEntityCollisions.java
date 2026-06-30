@@ -1,10 +1,12 @@
 package net.caffeinemc.mods.lithium.common.entity;
 
 import com.google.common.collect.AbstractIterator;
+import net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper;
 import net.caffeinemc.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeperVoxelShape;
 import net.caffeinemc.mods.lithium.common.util.Pos;
 import net.caffeinemc.mods.lithium.common.world.WorldHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.CollisionGetter;
@@ -207,23 +209,23 @@ public class LithiumEntityCollisions {
         return worldBorder.isInsideCloseToBorder(entity, box) ? worldBorder.getCollisionShape() : null;
     }
 
-    public static @Nullable VoxelShape getSupportingCollisionForEntity(Level world, @Nullable Entity entity, AABB entityBoundingBox) {
+    public static @Nullable VoxelShape getSupportingCollisionForEntity(Level world, @Nullable Entity entity, AABB entityBoundingBox, Vec3 movement) {
         if (entity instanceof SupportingBlockCollisionShapeProvider supportingBlockCollisionShapeProvider) {
             //Technically, the supporting block that vanilla calculates and caches is not always the one
             // that cancels the downwards motion, but usually it is, and this is only for a quick, additional test.
             //TODO: This may lead to the movement attempt not creating any chunk load tickets.
             // Entities and pistons **probably** create these tickets elsewhere anyways. This probably also applies
             // to usages of ChunkAwareBlockCollisionSweeperVoxelShape and others
-            VoxelShape voxelShape = supportingBlockCollisionShapeProvider.lithium$getCollisionShapeBelow();
+            VoxelShape voxelShape = supportingBlockCollisionShapeProvider.lithium$getCollisionShapeBelow(entityBoundingBox, movement);
             if (voxelShape != null) {
                 return voxelShape;
             }
         }
-        return getCollisionShapeBelowEntityFallback(world, entity, entityBoundingBox);
+        return getCollisionShapeBelowEntityFallback(world, entity, entityBoundingBox, movement);
     }
 
     @Nullable
-    private static VoxelShape getCollisionShapeBelowEntityFallback(Level world, Entity entity, AABB entityBoundingBox) {
+    private static VoxelShape getCollisionShapeBelowEntityFallback(Level world, Entity entity, AABB entityBoundingBox, Vec3 movement) {
         int x = Mth.floor(entityBoundingBox.minX + (entityBoundingBox.maxX - entityBoundingBox.minX) / 2);
         int y = Mth.floor(entityBoundingBox.minY);
         int z = Mth.floor(entityBoundingBox.minZ + (entityBoundingBox.maxZ - entityBoundingBox.minZ) / 2);
@@ -233,11 +235,26 @@ public class LithiumEntityCollisions {
         ChunkAccess chunk = world.getChunk(Pos.ChunkCoord.fromBlockCoord(x), Pos.ChunkCoord.fromBlockCoord(z), ChunkStatus.FULL, false);
         if (chunk != null) {
             LevelChunkSection cachedChunkSection = chunk.getSections()[Pos.SectionYIndex.fromBlockCoord(world, y)];
-            return cachedChunkSection.getBlockState(x & 15, y & 15, z & 15).
-                    getCollisionShape(world, new BlockPos(x, y, z), entity == null ? CollisionContext.empty() : CollisionContext.of(entity)).
-                    move(x, y, z);
+            VoxelShape blockCollisionShape = cachedChunkSection.getBlockState(x & 15, y & 15, z & 15).
+                    getCollisionShape(world, new BlockPos(x, y, z), entity == null ? CollisionContext.empty() : CollisionContext.of(entity));
+            return getOffsetShapeIfVanillaWouldIteratePos(entityBoundingBox, blockCollisionShape, x, y, z, movement);
         }
         return null;
+    }
+
+    /**
+     * Ensure to not iterate the shape when an incorrect <1e-7 to 0 movement snap could occur.
+     * When the movement is smaller than 1e-7, we must skip the shape if it isn't iterated in vanilla.
+     */
+    public static VoxelShape getOffsetShapeIfVanillaWouldIteratePos(AABB entityBoundingBox, VoxelShape voxelShape, int x, int y, int z, Vec3 movement) {
+        if (movement.get(Direction.Axis.Y) <= -1.0E-7) {
+            //The movement is large enough to get no clipping anyway
+            return voxelShape.move(x, y, z);
+        } else {
+            //Ensure to only return the non-null offset shape when it collides the movement volume
+            AABB movementVolume = entityBoundingBox.expandTowards(movement);
+            return ChunkAwareBlockCollisionSweeper.getCollidedShape(movementVolume, Shapes.create(movementVolume), voxelShape, x, y, z);
+        }
     }
 
     public static boolean addLastBlockCollisionIfRequired(boolean addLastBlockCollision, ChunkAwareBlockCollisionSweeperVoxelShape blockCollisionSweeper, List<VoxelShape> list) {
@@ -302,6 +319,6 @@ public class LithiumEntityCollisions {
 
     public interface SupportingBlockCollisionShapeProvider {
 
-        @Nullable VoxelShape lithium$getCollisionShapeBelow();
+        @Nullable VoxelShape lithium$getCollisionShapeBelow(AABB entityBoundingBox, Vec3 movement);
     }
 }

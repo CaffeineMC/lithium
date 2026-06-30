@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -90,13 +91,14 @@ public abstract class EntityMixin implements VicinityCacheProvider, LithiumEntit
     }
 
     @Override
-    public @Nullable VoxelShape lithium$getCollisionShapeBelow() {
+    public @Nullable VoxelShape lithium$getCollisionShapeBelow(AABB entityBoundingBox, Vec3 movement) {
         VicinityCache bc = this.getUpdatedVicinityCache((Entity) (Object) this);
         if (bc.isTracking()) {
             BlockState cachedSupportingBlock = bc.getCachedSupportingBlock();
             if (cachedSupportingBlock != null && this.mainSupportingBlockPos.isPresent()) {
                 BlockPos blockPos = this.mainSupportingBlockPos.get();
-                return cachedSupportingBlock.getCollisionShape(this.level(), blockPos, CollisionContext.of((Entity) (Object) this)).move(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+                VoxelShape blockCollisionShape = cachedSupportingBlock.getCollisionShape(this.level(), blockPos, CollisionContext.of((Entity) (Object) this));
+                return LithiumEntityCollisions.getOffsetShapeIfVanillaWouldIteratePos(entityBoundingBox, blockCollisionShape, blockPos.getX(), blockPos.getY(), blockPos.getZ(), movement);
             }
         }
         return null;
