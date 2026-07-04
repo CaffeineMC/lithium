@@ -156,6 +156,10 @@ public class LongJumpChoiceList extends AbstractList<LongJumpToRandomPos.Possibl
      * @return a random target
      */
     public LongJumpToRandomPos.PossibleJump removeRandomWeightedByDistanceSq(RandomSource random) {
+        if (this.totalWeight <= 0) {
+            //vanilla's WeightedRandom.getRandomItem returns Optional.empty() for a total weight of 0
+            return null;
+        }
         int targetWeight = random.nextInt(this.totalWeight);
         for (int index = 0; targetWeight >= 0 && index < this.weightByDistanceSq.length; index++) {
             targetWeight -= this.weightByDistanceSq[index];
@@ -180,10 +184,11 @@ public class LongJumpChoiceList extends AbstractList<LongJumpToRandomPos.Possibl
     public LongJumpToRandomPos.PossibleJump get(int index) {
         int elementIndex = index;
         IntArrayList[] offsetsByDistanceSq = this.packedOffsetsByDistanceSq;
-        for (int distanceSq = 0; distanceSq < offsetsByDistanceSq.length; distanceSq++) {
-            IntArrayList packedOffsets = offsetsByDistanceSq[distanceSq];
+        for (int arrayIndex = 0; arrayIndex < offsetsByDistanceSq.length; arrayIndex++) {
+            IntArrayList packedOffsets = offsetsByDistanceSq[arrayIndex];
             if (packedOffsets != null) {
                 if (elementIndex < packedOffsets.size()) {
+                    int distanceSq = arrayIndex + 1;
                     int packedOffset = packedOffsets.getInt(elementIndex);
                     return new LongJumpToRandomPos.PossibleJump(this.origin.offset(this.unpackX(packedOffset), this.unpackY(packedOffset), this.unpackZ(packedOffset)), distanceSq);
                 }
@@ -213,14 +218,15 @@ public class LongJumpChoiceList extends AbstractList<LongJumpToRandomPos.Possibl
     public LongJumpToRandomPos.PossibleJump remove(int index) {
         int elementIndex = index;
         IntArrayList[] offsetsByDistanceSq = this.packedOffsetsByDistanceSq;
-        for (int distanceSq = 0; distanceSq < offsetsByDistanceSq.length; distanceSq++) {
-            IntArrayList packedOffsets = offsetsByDistanceSq[distanceSq];
+        for (int arrayIndex = 0; arrayIndex < offsetsByDistanceSq.length; arrayIndex++) {
+            IntArrayList packedOffsets = offsetsByDistanceSq[arrayIndex];
             if (packedOffsets != null) {
                 if (elementIndex < packedOffsets.size()) {
+                    int distanceSq = arrayIndex + 1;
                     int packedOffset = packedOffsets.getInt(elementIndex);
                     packedOffsets.set(elementIndex, packedOffsets.set(packedOffsets.size() - 1, packedOffsets.getInt(elementIndex)));
                     packedOffsets.removeInt(packedOffsets.size() - 1);
-                    this.weightByDistanceSq[distanceSq] -= distanceSq;
+                    this.weightByDistanceSq[arrayIndex] -= distanceSq;
                     this.totalWeight -= distanceSq;
                     return new LongJumpToRandomPos.PossibleJump(this.origin.offset(this.unpackX(packedOffset), this.unpackY(packedOffset), this.unpackZ(packedOffset)), distanceSq);
                 }
