@@ -4,13 +4,12 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static net.minecraft.core.Direction.Axis.*;
 
 public class VoxelShapeMatchesAnywhere {
 
-    public static void cuboidMatchesAnywhere(VoxelShape shapeA, VoxelShape shapeB, BooleanOp predicate, CallbackInfoReturnable<Boolean> cir) {
+    public static int cuboidMatchesAnywhere(VoxelShape shapeA, VoxelShape shapeB, BooleanOp predicate) {
         //calling this method only if both shapes are not empty and have bounding box overlap
 
         if (shapeA instanceof VoxelShapeSimpleCube && shapeB instanceof VoxelShapeSimpleCube) {
@@ -22,25 +21,22 @@ public class VoxelShapeMatchesAnywhere {
                 //The optimization partially relies on only having to check the previous point position, which is
                 //not possible when 3 or more are within 2e-7 of another, as the previous point position could have
                 //been skipped by the merging code.
-                return;
+                return -1;
             }
             //both shapes are simple cubes, matching two cubes anywhere is really simple. Also handle epsilon margins.
             if (predicate.apply(true, true)) {
                 if (intersects((VoxelShapeSimpleCube) shapeA, (VoxelShapeSimpleCube) shapeB)) {
-                    cir.setReturnValue(true);
-                    return;
+                    return 1;
                 }
-                cir.setReturnValue(predicate.apply(true, false) || predicate.apply(false, true));
+                return (predicate.apply(true, false) || predicate.apply(false, true)) ? 1 : 0;
             } else if (predicate.apply(true, false) &&
                     exceedsShape((VoxelShapeSimpleCube) shapeA, (VoxelShapeSimpleCube) shapeB)) {
-                cir.setReturnValue(true);
-                return;
+                return 1;
             } else if (predicate.apply(false, true) &&
                     exceedsShape((VoxelShapeSimpleCube) shapeB, (VoxelShapeSimpleCube) shapeA)) {
-                cir.setReturnValue(true);
-                return;
+                return 1;
             }
-            cir.setReturnValue(false);
+            return 0;
         }
         else if (shapeA instanceof VoxelShapeSimpleCube || shapeB instanceof VoxelShapeSimpleCube) {
             //only one of the two shapes is a simple cube, but there are still some shortcuts that can be taken
@@ -49,7 +45,7 @@ public class VoxelShapeMatchesAnywhere {
 
             if (simpleCube.isTiny || isTiny(otherShape)) {
                 //vanilla fallback, same reason as above
-                return;
+                return -1;
             }
 
             boolean acceptSimpleCubeAlone = predicate.apply(shapeA == simpleCube, shapeB == simpleCube);
@@ -57,8 +53,7 @@ public class VoxelShapeMatchesAnywhere {
             if (acceptSimpleCubeAlone && exceedsCube(simpleCube,
                     otherShape.min(X), otherShape.min(Y), otherShape.min(Z),
                     otherShape.max(X), otherShape.max(Y), otherShape.max(Z))) {
-                cir.setReturnValue(true);
-                return;
+                return 1;
             }
             boolean acceptAnd = predicate.apply(true, true);
             boolean acceptOtherShapeAlone = predicate.apply(shapeA == otherShape, shapeB == otherShape);
@@ -110,14 +105,14 @@ public class VoxelShapeMatchesAnywhere {
                         boolean o = voxelSet.isFullWide(x, y, z);
                         boolean s = simpleCubeIntersectsXSlice && simpleCubeIntersectsYSlice && simpleCubeIntersectsZSlice;
                         if (acceptAnd && o && s || acceptSimpleCubeAlone && !o && s || acceptOtherShapeAlone && o && (xSliceExceedsCube || ySliceExceedsCube || zSliceExceedsCube)) {
-                            cir.setReturnValue(true);
-                            return;
+                            return 1;
                         }
                     }
                 }
             }
-            cir.setReturnValue(false);
+            return 0;
         }
+        return -1;
     }
 
     private static boolean isTiny(VoxelShape shapeA) {

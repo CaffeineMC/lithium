@@ -22,6 +22,9 @@ public class ShapesMixin {
             cancellable = true
     )
     private static void cuboidMatchesAnywhere(VoxelShape shapeA, VoxelShape shapeB, BooleanOp predicate, CallbackInfoReturnable<Boolean> cir) {
-        VoxelShapeMatchesAnywhere.cuboidMatchesAnywhere(shapeA, shapeB, predicate, cir);
+        int matchesAnywhere = VoxelShapeMatchesAnywhere.cuboidMatchesAnywhere(shapeA, shapeB, predicate);
+        if (matchesAnywhere != -1) {
+            cir.setReturnValue(matchesAnywhere != 0);
+        }
     }
 }
