@@ -67,7 +67,7 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
 
     private static double limitMovement(double maxDist, double sMinA, double sMaxA, int segmentsA, double bMinA, double bMaxA, double sMinB, double bMaxB, double bMinB, double sMaxB, double sMinC, double bMaxC, double bMinC, double sMaxC) {
         double maxMovement = VoxelShapeAlignedCuboid.limitMovement(sMinA, sMaxA, segmentsA, bMinA, bMaxA, maxDist);
-        if ((maxMovement != maxDist) && hasOverlap(sMinB, bMaxB, bMinB, sMaxB) && hasOverlap(sMinC, bMaxC, bMinC, sMaxC)) {
+        if ((maxMovement != maxDist) && hasOverlap(sMinB, sMaxB, bMinB, bMaxB) && hasOverlap(sMinC, sMaxC, bMinC, bMaxC)) {
             return maxMovement;
         }
         return maxDist;
