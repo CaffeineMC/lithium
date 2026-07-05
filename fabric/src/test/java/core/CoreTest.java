@@ -1,23 +1,17 @@
 package core;
 
 import net.caffeinemc.mods.lithium.common.util.change_tracking.ChangePublisher;
-import net.minecraft.SharedConstants;
-import net.minecraft.server.Bootstrap;
+import net.caffeinemc.mods.lithium.mixin.LithiumMixinPlugin;
 import net.minecraft.world.item.ItemStack;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import util.TestBootstrap;
 
-public class CoreTest {
-
-    @BeforeAll
-    static void beforeAll() {
-        SharedConstants.tryDetectVersion();
-        Bootstrap.bootStrap();
-    }
+public class CoreTest extends TestBootstrap {
 
     @Test
     void testMixinApply() {
-        Assertions.assertTrue(ChangePublisher.class.isAssignableFrom(ItemStack.class));
+        //noinspection ConstantValue
+        Assertions.assertEquals(ChangePublisher.class.isAssignableFrom(ItemStack.class), !LithiumMixinPlugin.DISABLE_ALL_MIXINS);
     }
 }
