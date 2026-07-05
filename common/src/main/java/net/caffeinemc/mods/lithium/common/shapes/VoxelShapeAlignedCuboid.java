@@ -55,58 +55,22 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
             return 0.0D;
         }
 
-        double minX = this.minX;
-        double minY = this.minY;
-        double minZ = this.minZ;
-        double maxX = this.maxX;
-        double maxY = this.maxY;
-        double maxZ = this.maxZ;
-        double bMinX = moving.minX;
-        double bMinY = moving.minY;
-        double bMinZ = moving.minZ;
-        double bMaxX = moving.maxX;
-        double bMaxY = moving.maxY;
-        double bMaxZ = moving.maxZ;
-
-        double maxMovement;
-        switch (cycleDirection) {
-            case NONE:
-                maxMovement = VoxelShapeAlignedCuboid.limitMovement(minX, maxX, this.getXSegments(), bMinX, bMaxX, maxDist);
-                if ((maxMovement != maxDist) && lessThan(minY, bMaxY) && lessThan(bMinY, maxY) && lessThan(minZ, bMaxZ) && lessThan(bMinZ, maxZ)) {
-                    return maxMovement;
-                }
-
-                return maxDist;
-            case FORWARD:
-                maxMovement = VoxelShapeAlignedCuboid.limitMovement(minZ, maxZ, this.getZSegments(), bMinZ, bMaxZ, maxDist);
-                if ((maxMovement != maxDist) && lessThan(minX, bMaxX) && lessThan(bMinX, maxX) && lessThan(minY, bMaxY) && lessThan(bMinY, maxY)) {
-                    return maxMovement;
-                }
-
-                return maxDist;
-            case BACKWARD:
-                maxMovement = VoxelShapeAlignedCuboid.limitMovement(minY, maxY, this.getYSegments(), bMinY, bMaxY, maxDist);
-                if ((maxMovement != maxDist) && lessThan(minZ, bMaxZ) && lessThan(bMinZ, maxZ) && lessThan(minX, bMaxX) && lessThan(bMinX, maxX)) {
-                    return maxMovement;
-                }
-
-                return maxDist;
-            default:
-                throw new IllegalArgumentException();
-        }
+        return switch (cycleDirection) {
+            case NONE ->
+                    limitMovement(maxDist, this.minX, this.maxX, this.getXSegments(), moving.minX, moving.maxX, this.minY, moving.maxY, moving.minY, this.maxY, this.minZ, moving.maxZ, moving.minZ, this.maxZ);
+            case FORWARD ->
+                    limitMovement(maxDist, this.minZ, this.maxZ, this.getZSegments(), moving.minZ, moving.maxZ, this.minX, moving.maxX, moving.minX, this.maxX, this.minY, moving.maxY, moving.minY, this.maxY);
+            case BACKWARD ->
+                    limitMovement(maxDist, this.minY, this.maxY, this.getYSegments(), moving.minY, moving.maxY, this.minZ, moving.maxZ, moving.minZ, this.maxZ, this.minX, moving.maxX, moving.minX, this.maxX);
+        };
     }
 
-    private double limitMovement(AxisCycle dir, AABB box, double maxDist) {
-        switch (dir) {
-            case NONE:
-                return VoxelShapeAlignedCuboid.limitMovement(this.minX, this.maxX, this.getXSegments(), box.minX, box.maxX, maxDist);
-            case FORWARD:
-                return VoxelShapeAlignedCuboid.limitMovement(this.minZ, this.maxZ, this.getZSegments(), box.minZ, box.maxZ, maxDist);
-            case BACKWARD:
-                return VoxelShapeAlignedCuboid.limitMovement(this.minY, this.maxY, this.getYSegments(), box.minY, box.maxY, maxDist);
-            default:
-                throw new IllegalArgumentException();
+    private static double limitMovement(double maxDist, double sMinA, double sMaxA, int segmentsA, double bMinA, double bMaxA, double sMinB, double bMaxB, double bMinB, double sMaxB, double sMinC, double bMaxC, double bMinC, double sMaxC) {
+        double maxMovement = VoxelShapeAlignedCuboid.limitMovement(sMinA, sMaxA, segmentsA, bMinA, bMaxA, maxDist);
+        if ((maxMovement != maxDist) && hasOverlap(sMinB, bMaxB, bMinB, sMaxB) && hasOverlap(sMinC, bMaxC, bMinC, sMaxC)) {
+            return maxMovement;
         }
+        return maxDist;
     }
 
     /**
