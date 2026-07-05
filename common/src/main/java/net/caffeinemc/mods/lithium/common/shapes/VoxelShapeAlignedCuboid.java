@@ -172,6 +172,10 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
         return findIndex(coord, segments);
     }
 
+    /**
+     * Implemented like vanilla's {@link net.minecraft.world.phys.shapes.CubeVoxelShape#findIndex(Direction.Axis, double)}
+     */
+    @SuppressWarnings("JavadocReference")
     private static int findIndex(double coord, int segments) {
         return Mth.clamp(Mth.floor(coord * (double) segments), -1, segments);
     }

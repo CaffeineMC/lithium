@@ -159,6 +159,12 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
         return this.minX >= this.maxX || this.minY >= this.maxY || this.minZ >= this.maxZ;
     }
 
+    /**
+     * Implemented like vanilla's {@link net.minecraft.world.phys.shapes.CubeVoxelShape#findIndex(Direction.Axis, double)}
+     * Implemented like vanilla's {@link net.minecraft.world.phys.shapes.ArrayVoxelShape#findIndex(Direction.Axis, double)}
+     * These are equivalent in the case of size 1. This shape always has size 1 on all axes.
+     */
+    @SuppressWarnings("JavadocReference")
     @Override
     public int findIndex(Direction.Axis axis, double coord) {
         if (coord < this.min(axis)) {

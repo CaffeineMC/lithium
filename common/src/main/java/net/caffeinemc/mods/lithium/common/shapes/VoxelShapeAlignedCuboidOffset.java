@@ -153,7 +153,20 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
         };
     }
 
-    private static int findIndex(double coord, double offset, int segments) {
-        return Mth.clamp(Mth.floor((coord - offset) * segments), -1, segments);
+    /**
+     * Implemented like vanilla's {@link net.minecraft.world.phys.shapes.ArrayVoxelShape#findIndex(Direction.Axis, double)}
+     */
+    private static int findIndex(double coord, double shapeOffset, int segments) {
+        //Add some epsilon to avoid underestimating the index here.
+        int index = Mth.floor((coord - shapeOffset + LARGE_EPSILON) * (double) segments);
+
+        //Perform the vanilla check from the binary search once, since index could be slightly over the boundary due to floating point rounding error (and added some epsilon)
+        double boundary = index / (double) segments + shapeOffset;
+        if (coord < boundary) {
+            index--;
+        }
+        //No need to check underestimated index, since some epsilon was added above to avoid underestimation.
+
+        return Mth.clamp(index, -1, segments);
     }
 }

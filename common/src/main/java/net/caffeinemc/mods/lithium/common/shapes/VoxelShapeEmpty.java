@@ -15,7 +15,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * iterate over sets of empty voxels/vertices.
  */
 public class VoxelShapeEmpty extends VoxelShape implements VoxelShapeCaster {
-    private static final DoubleList EMPTY_LIST = DoubleArrayList.wrap(new double[]{0.0D});
+    private static final DoubleList EMPTY_LIST = DoubleArrayList.wrap(new double[] { 0.0D }); //Vanilla also has 0.0, so merging behavior is not modified
 
     public VoxelShapeEmpty(DiscreteVoxelShape voxels) {
         super(voxels);
