@@ -64,18 +64,20 @@ public class RandomizedAABBMoveAgainstCubeTest {
         VoxelShape originBlock = Shapes.block();
         forEachRandomPosition(consumer, random, originBlock);
 
-        if (originBlock instanceof VoxelShapeSimpleCube) {
-            //Custom lithium shapes are in use
-            originBlock = new VoxelShapeAlignedCuboid(0, 0, 0, 1, 1, 1, 3, 3, 3);
-        } else {
-            //Vanilla shapes are in use
-            int xSize = 1 << 3;
-            int ySize = 1 << 3;
-            int zSize = 1 << 3;
-            BitSetDiscreteVoxelShape voxelSet = BitSetDiscreteVoxelShape.withFilledBounds(xSize, ySize, zSize, 0, 0, 0, xSize, ySize, zSize);
-            originBlock = new CubeVoxelShape(voxelSet);
+        for (int resolutionBits = 0; resolutionBits <= 3; resolutionBits++) {
+            if (originBlock instanceof VoxelShapeSimpleCube) {
+                //Custom lithium shapes are in use
+                originBlock = new VoxelShapeAlignedCuboid(0, 0, 0, 1, 1, 1, resolutionBits, resolutionBits, resolutionBits);
+            } else {
+                //Vanilla shapes are in use
+                int xSize = 1 << resolutionBits;
+                int ySize = 1 << resolutionBits;
+                int zSize = 1 << resolutionBits;
+                BitSetDiscreteVoxelShape voxelSet = BitSetDiscreteVoxelShape.withFilledBounds(xSize, ySize, zSize, 0, 0, 0, xSize, ySize, zSize);
+                originBlock = new CubeVoxelShape(voxelSet);
+            }
+            forEachRandomPosition(consumer, random, originBlock);
         }
-        forEachRandomPosition(consumer, random, originBlock);
     }
 
     private static void forEachRandomPosition(BiConsumer<Vec3, Function<Vec3, VoxelShape>> consumer, Random random, VoxelShape originBlock) {
