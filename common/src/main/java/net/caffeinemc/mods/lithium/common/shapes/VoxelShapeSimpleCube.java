@@ -54,36 +54,42 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
             return 0.0D;
         }
 
-        double maxMovement = this.limitMovement(cycleDirection, moving, maxDist);
+        double minX = this.minX;
+        double minY = this.minY;
+        double minZ = this.minZ;
+        double maxX = this.maxX;
+        double maxY = this.maxY;
+        double maxZ = this.maxZ;
+        double bMinX = moving.minX;
+        double bMinY = moving.minY;
+        double bMinZ = moving.minZ;
+        double bMaxX = moving.maxX;
+        double bMaxY = moving.maxY;
+        double bMaxZ = moving.maxZ;
 
-        if ((maxMovement != maxDist) && this.intersects(cycleDirection, moving)) {
-            return maxMovement;
-        }
-
-        return maxDist;
-    }
-
-    private double limitMovement(AxisCycle dir, AABB box, double maxDist) {
-        switch (dir) {
+        double maxMovement;
+        switch (cycleDirection) {
             case NONE:
-                return VoxelShapeSimpleCube.limitMovement(this.minX, this.maxX, box.minX, box.maxX, maxDist);
-            case FORWARD:
-                return VoxelShapeSimpleCube.limitMovement(this.minZ, this.maxZ, box.minZ, box.maxZ, maxDist);
-            case BACKWARD:
-                return VoxelShapeSimpleCube.limitMovement(this.minY, this.maxY, box.minY, box.maxY, maxDist);
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
+                maxMovement = VoxelShapeSimpleCube.limitMovement(minX, maxX, bMinX, bMaxX, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minY, bMaxY) && lessThan(bMinY, maxY) && lessThan(minZ, bMaxZ) && lessThan(bMinZ, maxZ)) {
+                    return maxMovement;
+                }
 
-    boolean intersects(AxisCycle dir, AABB box) {
-        switch (dir) {
-            case NONE:
-                return lessThan(this.minY, box.maxY) && lessThan(box.minY, this.maxY) && lessThan(this.minZ, box.maxZ) && lessThan(box.minZ, this.maxZ);
+                return maxDist;
             case FORWARD:
-                return lessThan(this.minX, box.maxX) && lessThan(box.minX, this.maxX) && lessThan(this.minY, box.maxY) && lessThan(box.minY, this.maxY);
+                maxMovement = VoxelShapeSimpleCube.limitMovement(minZ, maxZ, bMinZ, bMaxZ, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minX, bMaxX) && lessThan(bMinX, maxX) && lessThan(minY, bMaxY) && lessThan(bMinY, maxY)) {
+                    return maxMovement;
+                }
+
+                return maxDist;
             case BACKWARD:
-                return lessThan(this.minZ, box.maxZ) && lessThan(box.minZ, this.maxZ) && lessThan(this.minX, box.maxX) && lessThan(box.minX, this.maxX);
+                maxMovement = VoxelShapeSimpleCube.limitMovement(minY, maxY, bMinY, bMaxY, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minZ, bMaxZ) && lessThan(bMinZ, maxZ) && lessThan(minX, bMaxX) && lessThan(bMinX, maxX)) {
+                    return maxMovement;
+                }
+
+                return maxDist;
             default:
                 throw new IllegalArgumentException();
         }
@@ -184,7 +190,7 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
         return 0;
     }
 
-    private static boolean lessThan(double a, double b) {
+    static boolean lessThan(double a, double b) {
         return (a + EPSILON) < b;
     }
 

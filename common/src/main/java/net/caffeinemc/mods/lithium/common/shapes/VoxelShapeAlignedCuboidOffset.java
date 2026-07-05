@@ -16,9 +16,7 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
     //instead of keeping those variables, equivalent information can probably be recovered from minX, minY, minZ (which are 1/8th of a block aligned), but possibly with additional floating point error
 
     public VoxelShapeAlignedCuboidOffset(VoxelShapeAlignedCuboid originalShape, DiscreteVoxelShape voxels, double xOffset, double yOffset, double zOffset) {
-        super(voxels,
-                originalShape.minX + xOffset, originalShape.minY + yOffset, originalShape.minZ + zOffset,
-                originalShape.maxX + xOffset, originalShape.maxY + yOffset, originalShape.maxZ + zOffset, originalShape.xyzResolution);
+        super(voxels, originalShape.minX + xOffset, originalShape.minY + yOffset, originalShape.minZ + zOffset, originalShape.maxX + xOffset, originalShape.maxY + yOffset, originalShape.maxZ + zOffset, originalShape.xyzResolution);
 
         if (originalShape instanceof VoxelShapeAlignedCuboidOffset) {
             this.xOffset = ((VoxelShapeAlignedCuboidOffset) originalShape).xOffset + xOffset; //TODO the float addition here might cause non-vanilla floating point errors
@@ -37,28 +35,46 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
             return 0.0D;
         }
 
-        double maxMovement = this.limitMovement(cycleDirection, moving, maxDist);
+        double minX = this.minX;
+        double minY = this.minY;
+        double minZ = this.minZ;
+        double maxX = this.maxX;
+        double maxY = this.maxY;
+        double maxZ = this.maxZ;
+        double bMinX = moving.minX;
+        double bMinY = moving.minY;
+        double bMinZ = moving.minZ;
+        double bMaxX = moving.maxX;
+        double bMaxY = moving.maxY;
+        double bMaxZ = moving.maxZ;
 
-        if ((maxMovement != maxDist) && this.intersects(cycleDirection, moving)) {
-            return maxMovement;
-        }
-
-        return maxDist;
-    }
-
-    private double limitMovement(AxisCycle dir, AABB box, double maxDist) {
-        switch (dir) {
+        double maxMovement;
+        switch (cycleDirection) {
             case NONE:
-                return VoxelShapeAlignedCuboidOffset.limitMovement(this.minX, this.maxX, this.getXSegments(), this.xOffset, box.minX, box.maxX, maxDist);
+                maxMovement = VoxelShapeAlignedCuboidOffset.limitMovement(minX, maxX, this.getXSegments(), this.xOffset, bMinX, bMaxX, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minY, bMaxY) && lessThan(bMinY, maxY) && lessThan(minZ, bMaxZ) && lessThan(bMinZ, maxZ)) {
+                    return maxMovement;
+                }
+
+                return maxDist;
             case FORWARD:
-                return VoxelShapeAlignedCuboidOffset.limitMovement(this.minZ, this.maxZ, this.getZSegments(), this.zOffset, box.minZ, box.maxZ, maxDist);
+                maxMovement = VoxelShapeAlignedCuboidOffset.limitMovement(minZ, maxZ, this.getZSegments(), this.zOffset, bMinZ, bMaxZ, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minX, bMaxX) && lessThan(bMinX, maxX) && lessThan(minY, bMaxY) && lessThan(bMinY, maxY)) {
+                    return maxMovement;
+                }
+
+                return maxDist;
             case BACKWARD:
-                return VoxelShapeAlignedCuboidOffset.limitMovement(this.minY, this.maxY, this.getYSegments(), this.yOffset, box.minY, box.maxY, maxDist);
+                maxMovement = VoxelShapeAlignedCuboidOffset.limitMovement(minY, maxY, this.getYSegments(), this.yOffset, bMinY, bMaxY, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minZ, bMaxZ) && lessThan(bMinZ, maxZ) && lessThan(minX, bMaxX) && lessThan(bMinX, maxX)) {
+                    return maxMovement;
+                }
+
+                return maxDist;
             default:
                 throw new IllegalArgumentException();
         }
     }
-
 
     /**
      * Determine how far the movement is possible.

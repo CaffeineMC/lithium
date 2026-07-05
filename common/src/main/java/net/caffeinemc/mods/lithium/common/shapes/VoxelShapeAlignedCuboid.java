@@ -31,7 +31,7 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
         if (xRes > 3 || yRes > 3 || zRes > 3 || xRes < 0 || yRes < 0 || zRes < 0) {
             throw new IllegalArgumentException("Resolution must be between 0 and 3");
         }
-        
+
         this.xyzResolution = (byte) (xRes << 4 | yRes << 2 | zRes);
     }
 
@@ -55,13 +55,45 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
             return 0.0D;
         }
 
-        double maxMovement = this.limitMovement(cycleDirection, moving, maxDist);
+        double minX = this.minX;
+        double minY = this.minY;
+        double minZ = this.minZ;
+        double maxX = this.maxX;
+        double maxY = this.maxY;
+        double maxZ = this.maxZ;
+        double bMinX = moving.minX;
+        double bMinY = moving.minY;
+        double bMinZ = moving.minZ;
+        double bMaxX = moving.maxX;
+        double bMaxY = moving.maxY;
+        double bMaxZ = moving.maxZ;
 
-        if ((maxMovement != maxDist) && this.intersects(cycleDirection, moving)) {
-            return maxMovement;
+        double maxMovement;
+        switch (cycleDirection) {
+            case NONE:
+                maxMovement = VoxelShapeAlignedCuboid.limitMovement(minX, maxX, this.getXSegments(), bMinX, bMaxX, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minY, bMaxY) && lessThan(bMinY, maxY) && lessThan(minZ, bMaxZ) && lessThan(bMinZ, maxZ)) {
+                    return maxMovement;
+                }
+
+                return maxDist;
+            case FORWARD:
+                maxMovement = VoxelShapeAlignedCuboid.limitMovement(minZ, maxZ, this.getZSegments(), bMinZ, bMaxZ, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minX, bMaxX) && lessThan(bMinX, maxX) && lessThan(minY, bMaxY) && lessThan(bMinY, maxY)) {
+                    return maxMovement;
+                }
+
+                return maxDist;
+            case BACKWARD:
+                maxMovement = VoxelShapeAlignedCuboid.limitMovement(minY, maxY, this.getYSegments(), bMinY, bMaxY, maxDist);
+                if ((maxMovement != maxDist) && lessThan(minZ, bMaxZ) && lessThan(bMinZ, maxZ) && lessThan(minX, bMaxX) && lessThan(bMinX, maxX)) {
+                    return maxMovement;
+                }
+
+                return maxDist;
+            default:
+                throw new IllegalArgumentException();
         }
-
-        return maxDist;
     }
 
     private double limitMovement(AxisCycle dir, AABB box, double maxDist) {
