@@ -15,6 +15,9 @@ import java.util.Set;
 public class LithiumMixinPlugin implements IMixinConfigPlugin {
     private static final String[] MIXIN_PACKAGE_ROOTS = {"net.caffeinemc.mods.lithium.mixin.", "net.caffeinemc.mods.lithium.fabric.mixin.", "net.caffeinemc.mods.lithium.neoforge.mixin."};
 
+    private static final String DISABLE_ALL_MIXINS_PROPERTY = "lithium.test.disable_all_mixins";
+    public static final boolean DISABLE_ALL_MIXINS = Boolean.parseBoolean(System.getProperty(DISABLE_ALL_MIXINS_PROPERTY));
+
     private final Logger logger = LogManager.getLogger("Lithium");
 
     private static LithiumConfig CONFIG;
@@ -22,6 +25,11 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
+        if (DISABLE_ALL_MIXINS) {
+            this.logger.warn("All Lithium Mixins are disabled via VM argument lithium.test.disable_all_mixins=true");
+            return;
+        }
+
         if (CONFIG != null) {
             return;
         }
@@ -46,6 +54,9 @@ public class LithiumMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (DISABLE_ALL_MIXINS) {
+            return false;
+        }
         if (DEBUG) {
             this.logger.info("Checking mixin '{}' for target '{}'", mixinClassName, targetClassName);
         }

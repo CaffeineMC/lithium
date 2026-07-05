@@ -84,6 +84,24 @@ tasks.test {
     outputs.upToDateWhen { false }
 }
 
+// Run tests with mixins disabled to ensure vanilla actually passes our tests
+tasks.register<Test>("testVanilla") {
+    useJUnitPlatform()
+
+    // Disable caching to ensure tests always run
+    outputs.upToDateWhen { false }
+
+    jvmArgs("-Dlithium.test.disable_all_mixins=true")
+
+    description = "Runs tests with lithium mixins disabled."
+    group = "verification"
+
+    // Use the same compiled test classes and classpath as the normal test task
+    val testTask = tasks.named<Test>("test").get()
+    testClassesDirs = testTask.testClassesDirs
+    classpath = testTask.classpath
+}
+
 //Mixin hotswap, debug flags
 afterEvaluate {
     loom.runs.configureEach {
