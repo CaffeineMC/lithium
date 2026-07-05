@@ -1,5 +1,6 @@
 package shapes;
 
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import net.caffeinemc.mods.lithium.common.shapes.VoxelShapeAlignedCuboid;
 import net.caffeinemc.mods.lithium.common.shapes.VoxelShapeSimpleCube;
 import net.minecraft.core.Direction;
@@ -62,8 +63,11 @@ public class RandomizedAABBMoveAgainstCubeTest {
 
     private static void forEachRandomPosition(BiConsumer<Vec3, Function<Vec3, VoxelShape>> consumer, Random random) {
         VoxelShape originBlock = Shapes.block();
-        forEachRandomPosition(consumer, random, originBlock);
+        forEachRandomPositionWithoutInnerWalls(consumer, random, originBlock);
+        forEachRandomPositionWithInnerWalls(consumer, random, originBlock);
+    }
 
+    private static void forEachRandomPositionWithInnerWalls(BiConsumer<Vec3, Function<Vec3, VoxelShape>> consumer, Random random, VoxelShape originBlock) {
         for (int resolutionBits = 0; resolutionBits <= 3; resolutionBits++) {
             if (originBlock instanceof VoxelShapeSimpleCube) {
                 //Custom lithium shapes are in use
@@ -76,11 +80,11 @@ public class RandomizedAABBMoveAgainstCubeTest {
                 BitSetDiscreteVoxelShape voxelSet = BitSetDiscreteVoxelShape.withFilledBounds(xSize, ySize, zSize, 0, 0, 0, xSize, ySize, zSize);
                 originBlock = new CubeVoxelShape(voxelSet);
             }
-            forEachRandomPosition(consumer, random, originBlock);
+            forEachRandomPositionWithoutInnerWalls(consumer, random, originBlock);
         }
     }
 
-    private static void forEachRandomPosition(BiConsumer<Vec3, Function<Vec3, VoxelShape>> consumer, Random random, VoxelShape originBlock) {
+    private static void forEachRandomPositionWithoutInnerWalls(BiConsumer<Vec3, Function<Vec3, VoxelShape>> consumer, Random random, VoxelShape originBlock) {
         Function<Vec3, VoxelShape> voxelShapeProducer = vec3 -> {
             if (vec3.x() == 0 && vec3.y() == 0 && vec3.z() == 0) {
                 return originBlock;
@@ -130,6 +134,98 @@ public class RandomizedAABBMoveAgainstCubeTest {
             double decisionBoundary = getDecisionBoundaryForNegativeMovementPushedBackwards(position.y() + 1);
             AABB aabb = new AABB(position.x(), Math.nextDown(decisionBoundary), position.z(), position.x() + 1, position.y() + 1 + 3, position.z() + 1);
             assertEquals(-0.05, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeBarelyForwards");
+        }, new Random(SEED));
+    }
+
+    @Test
+    void testMoveNegativeAgainstInnerWall() {
+        forEachRandomPosition((position, shapeProvider) -> {
+            VoxelShape cubeBelow = shapeProvider.apply(position);
+            DoubleList coords = cubeBelow.getCoords(Direction.Axis.Y);
+            for (int i = 0; i < coords.size(); i++) {
+                double coord = coords.getDouble(i);
+                boolean isLastWall = i == 0;
+
+                AABB aabb = new AABB(position.x(), coord + 0.01, position.z(), position.x() + 1, position.y() + 3, position.z() + 1);
+                double expected = isLastWall ? -5 : coord - aabb.minY;
+                assertEquals(expected, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -5), position, "testMoveNegativeAgainstInnerWall");
+            }
+        }, new Random(SEED));
+    }
+
+    @Test
+    void testMoveNegativeAgainstInnerWallBackwards() {
+        forEachRandomPosition((position, shapeProvider) -> {
+            VoxelShape cubeBelow = shapeProvider.apply(position);
+            DoubleList coords = cubeBelow.getCoords(Direction.Axis.Y);
+            for (int i = 0; i < coords.size(); i++) {
+                double coord = coords.getDouble(i);
+                boolean isLastWall = i == 0;
+                double decisionBoundary = getDecisionBoundaryForNegativeMovementPushedBackwards(coord);
+                AABB aabb = new AABB(position.x(), decisionBoundary, position.z(), position.x() + 1, position.y() + 1 + 3, position.z() + 1);
+                double expected = isLastWall ? -0.05 : coord - aabb.minY;
+                assertEquals(expected, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeAgainstInnerWallBackwards");
+            }
+        }, new Random(SEED));
+    }
+
+    @Test
+    void testMoveNegativeAgainstInnerWallBarelyForwards() {
+        forEachRandomPosition((position, shapeProvider) -> {
+            VoxelShape cubeBelow = shapeProvider.apply(position);
+            DoubleList coords = cubeBelow.getCoords(Direction.Axis.Y);
+            for (int i = 0; i < coords.size(); i++) {
+                double coord = coords.getDouble(i);
+                double decisionBoundary = getDecisionBoundaryForNegativeMovementPushedBackwards(coord);
+                AABB aabb = new AABB(position.x(), Math.nextDown(decisionBoundary), position.z(), position.x() + 1, position.y() + 1 + 3, position.z() + 1);
+                assertEquals(-0.05, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeAgainstInnerWallBarelyForwards");
+            }
+        }, new Random(SEED));
+    }
+
+    @Test
+    void testMovePositiveAgainstInnerWall() {
+        forEachRandomPosition((position, shapeProvider) -> {
+            VoxelShape cubeAbove = shapeProvider.apply(position);
+            DoubleList coords = cubeAbove.getCoords(Direction.Axis.Y);
+            for (int i = 0; i < coords.size(); i++) {
+                double coord = coords.getDouble(i);
+                boolean isLastWall = i == coords.size() - 1;
+
+                AABB aabb = new AABB(position.x(), position.y() - 3, position.z(), position.x() + 1, coord - 0.01, position.z() + 1);
+                double expected = isLastWall ? 5 : coord - aabb.maxY;
+                assertEquals(expected, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 5), position, "testMovePositiveAgainstInnerWall");
+            }
+        }, new Random(SEED));
+    }
+
+    @Test
+    void testMovePositiveAgainstInnerWallBackwards() {
+        forEachRandomPosition((position, shapeProvider) -> {
+            VoxelShape cubeAbove = shapeProvider.apply(position);
+            DoubleList coords = cubeAbove.getCoords(Direction.Axis.Y);
+            for (int i = 0; i < coords.size(); i++) {
+                double coord = coords.getDouble(i);
+                boolean isLastWall = i == coords.size() - 1;
+                double decisionBoundary = getDecisionBoundaryForPositiveMovementPushedBackwards(coord);
+                AABB aabb = new AABB(position.x(), position.y() - 3, position.z(), position.x() + 1, decisionBoundary, position.z() + 1);
+                double expected = isLastWall ? 0.05 : coord - aabb.maxY;
+                assertEquals(expected, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveAgainstInnerWallBackwards");
+            }
+        }, new Random(SEED));
+    }
+
+    @Test
+    void testMovePositiveAgainstInnerWallBarelyForwards() {
+        forEachRandomPosition((position, shapeProvider) -> {
+            VoxelShape cubeAbove = shapeProvider.apply(position);
+            DoubleList coords = cubeAbove.getCoords(Direction.Axis.Y);
+            for (int i = 0; i < coords.size(); i++) {
+                double coord = coords.getDouble(i);
+                double decisionBoundary = getDecisionBoundaryForPositiveMovementPushedBackwards(coord);
+                AABB aabb = new AABB(position.x(), position.y() - 3, position.z(), position.x() + 1, Math.nextUp(decisionBoundary), position.z() + 1);
+                assertEquals(0.05, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveAgainstInnerWallBarelyForwards");
+            }
         }, new Random(SEED));
     }
 
