@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import util.TestBootstrap;
 
-public class CoreTest extends TestBootstrap {
+public class MixinApplyTest extends TestBootstrap {
 
     @Test
     void testMixinApply() {
