@@ -66,14 +66,21 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
 
     private static double limitMovement(double maxDist, double bMinA, double bMaxA, double bMinB, double bMaxB, double bMinC, double bMaxC, double sMinA, double sMaxA, double sMinB, double sMaxB, double sMinC, double sMaxC) {
         double maxMovement = VoxelShapeSimpleCube.limitMovement(maxDist, sMinA, sMaxA, bMinA, bMaxA);
-        if (maxMovement != maxDist && hasOverlap(sMinB, sMaxB, bMinB, bMaxB) && hasOverlap(sMinC, sMaxC, bMinC, bMaxC)) {
+        if (maxMovement != maxDist && hasOverlapFIE(sMinB, sMaxB, bMinB, bMaxB) && hasOverlapFIE(sMinC, sMaxC, bMinC, bMaxC)) {
             return maxMovement;
         }
         return maxDist;
     }
 
-    static boolean hasOverlap(double sMin, double sMax, double bMin, double bMax) {
-        return sMin + EPSILON < bMax && bMin + EPSILON < sMax;
+    /**
+     * Epsilon and < vs. <= behavior given by {@link VoxelShape#collideX(AxisCycle, AABB, double)}:
+     * Box is effectively shrunk by 1e-7, comparisons always with boxcoord (+-EPSILON) < shapecoord
+     * cf. {@link VoxelShape#findIndex(Direction.Axis, double)}
+     * <p>
+     * Method named after FindIndex and Epsilon to indicate its exact behavior in the name.
+     */
+    static boolean hasOverlapFIE(double sMin, double sMax, double bMin, double bMax) {
+        return !(bMax - EPSILON < sMin) && bMin + EPSILON < sMax;
     }
 
     private static double limitMovement(double maxDist, double sMin, double sMax, double bMin, double bMax) {

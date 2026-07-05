@@ -47,7 +47,7 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
 
     private static double limitMovement(double maxDist, int segmentsA, double offsetA, double bMinA, double bMaxA, double bMinB, double bMaxB, double bMinC, double bMaxC, double sMinA, double sMaxA, double sMinB, double sMaxB, double sMinC, double sMaxC) {
         double maxMovement = VoxelShapeAlignedCuboidOffset.limitMovement(maxDist, segmentsA, offsetA, sMinA, sMaxA, bMinA, bMaxA);
-        if (maxMovement != maxDist && hasOverlap(sMinB, sMaxB, bMinB, bMaxB) && hasOverlap(sMinC, sMaxC, bMinC, bMaxC)) {
+        if (maxMovement != maxDist && hasOverlapFIE(sMinB, sMaxB, bMinB, bMaxB) && hasOverlapFIE(sMinC, sMaxC, bMinC, bMaxC)) {
             return maxMovement;
         }
         return maxDist;
