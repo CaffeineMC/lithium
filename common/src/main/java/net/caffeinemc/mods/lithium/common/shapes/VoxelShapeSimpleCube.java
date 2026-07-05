@@ -56,33 +56,33 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
 
         return switch (cycleDirection) {
             case NONE ->
-                    limitMovement(maxDist, this.minX, this.maxX, moving.minX, moving.maxX, this.minY, moving.maxY, moving.minY, this.maxY, this.minZ, moving.maxZ, moving.minZ, this.maxZ);
+                    limitMovement(maxDist, moving.minX, moving.maxX, moving.minY, moving.maxY, moving.minZ, moving.maxZ, this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ);
             case FORWARD ->
-                    limitMovement(maxDist, this.minZ, this.maxZ, moving.minZ, moving.maxZ, this.minX, moving.maxX, moving.minX, this.maxX, this.minY, moving.maxY, moving.minY, this.maxY);
+                    limitMovement(maxDist, moving.minZ, moving.maxZ, moving.minX, moving.maxX, moving.minY, moving.maxY, this.minZ, this.maxZ, this.minX, this.maxX, this.minY, this.maxY);
             case BACKWARD ->
-                    limitMovement(maxDist, this.minY, this.maxY, moving.minY, moving.maxY, this.minZ, moving.maxZ, moving.minZ, this.maxZ, this.minX, moving.maxX, moving.minX, this.maxX);
+                    limitMovement(maxDist, moving.minY, moving.maxY, moving.minZ, moving.maxZ, moving.minX, moving.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.minX, this.maxX);
         };
     }
 
-    private static double limitMovement(double maxDist, double sMinA, double sMaxA, double bMinA, double bMaxA, double sMinB, double bMaxB, double bMinB, double sMaxB, double sMinC, double bMaxC, double bMinC, double sMaxC) {
-        double maxMovement = VoxelShapeSimpleCube.limitMovement(sMinA, sMaxA, bMinA, bMaxA, maxDist);
-        if ((maxMovement != maxDist) && hasOverlap(sMinB, sMaxB, bMinB, bMaxB) && hasOverlap(sMinC, sMaxC, bMinC, bMaxC)) {
+    private static double limitMovement(double maxDist, double bMinA, double bMaxA, double bMinB, double bMaxB, double bMinC, double bMaxC, double sMinA, double sMaxA, double sMinB, double sMaxB, double sMinC, double sMaxC) {
+        double maxMovement = VoxelShapeSimpleCube.limitMovement(maxDist, sMinA, sMaxA, bMinA, bMaxA);
+        if (maxMovement != maxDist && hasOverlap(sMinB, sMaxB, bMinB, bMaxB) && hasOverlap(sMinC, sMaxC, bMinC, bMaxC)) {
             return maxMovement;
         }
         return maxDist;
     }
 
     static boolean hasOverlap(double sMin, double sMax, double bMin, double bMax) {
-        return lessThan(sMin, bMax) && lessThan(bMin, sMax);
+        return sMin + EPSILON < bMax && bMin + EPSILON < sMax;
     }
 
-    private static double limitMovement(double a1, double a2, double b1, double b2, double maxDist) {
+    private static double limitMovement(double maxDist, double sMin, double sMax, double bMin, double bMax) {
         double maxMovement;
 
         if (maxDist > 0.0D) {
-            maxMovement = a1 - b2;
+            maxMovement = sMin - bMax;
 
-            if ((maxMovement < -EPSILON) || (maxDist < maxMovement)) {
+            if (maxMovement < -EPSILON || maxDist < maxMovement) {
                 //already far enough inside this shape to not collide with the surface or
                 //outside the shape and still far enough away for no collision at all
                 return maxDist;
@@ -90,9 +90,9 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
             //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
         } else {
             //whole code again, just negated for the other direction
-            maxMovement = a2 - b1;
+            maxMovement = sMax - bMin;
 
-            if ((maxMovement > EPSILON) || (maxDist > maxMovement)) {
+            if (maxMovement > EPSILON || maxDist > maxMovement) {
                 return maxDist;
             }
         }
@@ -122,14 +122,14 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
 
     @Override
     protected double get(Direction.Axis axis, int index) {
-        if ((index < 0) || (index > 1)) {
+        if (index < 0 || index > 1) {
             throw new ArrayIndexOutOfBoundsException();
         }
 
         return switch (axis) {
-            case X -> (index == 0) ? this.minX : this.maxX;
-            case Y -> (index == 0) ? this.minY : this.maxY;
-            case Z -> (index == 0) ? this.minZ : this.maxZ;
+            case X -> index == 0 ? this.minX : this.maxX;
+            case Y -> index == 0 ? this.minY : this.maxY;
+            case Z -> index == 0 ? this.minZ : this.maxZ;
         };
 
     }
@@ -147,7 +147,7 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
 
     @Override
     public boolean isEmpty() {
-        return (this.minX >= this.maxX) || (this.minY >= this.maxY) || (this.minZ >= this.maxZ);
+        return this.minX >= this.maxX || this.minY >= this.maxY || this.minZ >= this.maxZ;
     }
 
     @Override
@@ -163,15 +163,11 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
         return 0;
     }
 
-    static boolean lessThan(double a, double b) {
-        return (a + EPSILON) < b;
-    }
-
     @Override
     public boolean intersectsJNE(AABB box, double blockX, double blockY, double blockZ) {
-        return ((box.minX + 1e-7) < (this.maxX + blockX)) && ((box.maxX - 1e-7) > (this.minX + blockX)) &&
-                ((box.minY + 1e-7) < (this.maxY + blockY)) && ((box.maxY - 1e-7) > (this.minY + blockY)) &&
-                ((box.minZ + 1e-7) < (this.maxZ + blockZ)) && ((box.maxZ - 1e-7) > (this.minZ + blockZ));
+        return box.minX + 1e-7 < this.maxX + blockX && box.maxX - 1e-7 > this.minX + blockX &&
+                box.minY + 1e-7 < this.maxY + blockY && box.maxY - 1e-7 > this.minY + blockY &&
+                box.minZ + 1e-7 < this.maxZ + blockZ && box.maxZ - 1e-7 > this.minZ + blockZ;
     }
 
 

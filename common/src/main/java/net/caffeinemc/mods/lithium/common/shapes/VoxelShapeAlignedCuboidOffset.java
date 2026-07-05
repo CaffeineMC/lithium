@@ -19,7 +19,7 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
         super(voxels, originalShape.minX + xOffset, originalShape.minY + yOffset, originalShape.minZ + zOffset, originalShape.maxX + xOffset, originalShape.maxY + yOffset, originalShape.maxZ + zOffset, originalShape.xyzResolution);
 
         if (originalShape instanceof VoxelShapeAlignedCuboidOffset) {
-            this.xOffset = ((VoxelShapeAlignedCuboidOffset) originalShape).xOffset + xOffset; //TODO the float addition here might cause non-vanilla floating point errors
+            this.xOffset = ((VoxelShapeAlignedCuboidOffset) originalShape).xOffset + xOffset; //TODO the float addition here can cause non-vanilla floating point errors
             this.yOffset = ((VoxelShapeAlignedCuboidOffset) originalShape).yOffset + yOffset; // Float non-associativity technically causes an issue here
             this.zOffset = ((VoxelShapeAlignedCuboidOffset) originalShape).zOffset + zOffset; // In practice, this is likely not a problem
         } else {
@@ -37,17 +37,17 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
 
         return switch (cycleDirection) {
             case NONE ->
-                    limitMovement(maxDist, this.minX, this.maxX, this.getXSegments(), this.xOffset, moving.minX, moving.maxX, this.minY, moving.maxY, moving.minY, this.maxY, this.minZ, moving.maxZ, moving.minZ, this.maxZ);
+                    limitMovement(maxDist, this.getXSegments(), this.xOffset, moving.minX, moving.maxX, moving.minY, moving.maxY, moving.minZ, moving.maxZ, this.minX, this.maxX, this.minY, this.maxY, this.minZ, this.maxZ);
             case FORWARD ->
-                    limitMovement(maxDist, this.minZ, this.maxZ, this.getZSegments(), this.zOffset, moving.minZ, moving.maxZ, this.minX, moving.maxX, moving.minX, this.maxX, this.minY, moving.maxY, moving.minY, this.maxY);
+                    limitMovement(maxDist, this.getZSegments(), this.zOffset, moving.minZ, moving.maxZ, moving.minX, moving.maxX, moving.minY, moving.maxY, this.minZ, this.maxZ, this.minX, this.maxX, this.minY, this.maxY);
             case BACKWARD ->
-                    limitMovement(maxDist, this.minY, this.maxY, this.getYSegments(), this.yOffset, moving.minY, moving.maxY, this.minZ, moving.maxZ, moving.minZ, this.maxZ, this.minX, moving.maxX, moving.minX, this.maxX);
+                    limitMovement(maxDist, this.getYSegments(), this.yOffset, moving.minY, moving.maxY, moving.minZ, moving.maxZ, moving.minX, moving.maxX, this.minY, this.maxY, this.minZ, this.maxZ, this.minX, this.maxX);
         };
     }
 
-    private static double limitMovement(double maxDist, double sMinA, double sMaxA, int segmentsA, double offsetA, double bMinA, double bMaxA, double sMinB, double bMaxB, double bMinB, double sMaxB, double sMinC, double bMaxC, double bMinC, double sMaxC) {
-        double maxMovement = VoxelShapeAlignedCuboidOffset.limitMovement(sMinA, sMaxA, segmentsA, offsetA, bMinA, bMaxA, maxDist);
-        if ((maxMovement != maxDist) && hasOverlap(sMinB, sMaxB, bMinB, bMaxB) && hasOverlap(sMinC, sMaxC, bMinC, bMaxC)) {
+    private static double limitMovement(double maxDist, int segmentsA, double offsetA, double bMinA, double bMaxA, double bMinB, double bMaxB, double bMinC, double bMaxC, double sMinA, double sMaxA, double sMinB, double sMaxB, double sMinC, double sMaxC) {
+        double maxMovement = VoxelShapeAlignedCuboidOffset.limitMovement(maxDist, segmentsA, offsetA, sMinA, sMaxA, bMinA, bMaxA);
+        if (maxMovement != maxDist && hasOverlap(sMinB, sMaxB, bMinB, bMaxB) && hasOverlap(sMinC, sMaxC, bMinC, bMaxC)) {
             return maxMovement;
         }
         return maxDist;
@@ -56,18 +56,18 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
     /**
      * Determine how far the movement is possible.
      */
-    private static double limitMovement(double aMin, double aMax, final int segmentsPerUnit, double shapeOffset, double bMin, double bMax, double maxDist) {
-        double gap;
+    private static double limitMovement(double maxDist, int segments, double shapeOffset, double sMin, double sMax, double bMin, double bMax) {
+        double maxMovement;
 
         if (maxDist > 0.0D) {
-            gap = aMin - bMax;
+            maxMovement = aMin - bMax;
 
-            if (gap >= -EPSILON) {
+            if (maxMovement >= -EPSILON) {
                 //outside the shape/within margin, move up to/back to boundary
-                return Math.min(gap, maxDist);
+                return Math.min(maxMovement, maxDist);
             } else {
                 //already far enough inside this shape to not collide with the surface
-                if (segmentsPerUnit == 1) {
+                if (segments == 1) {
                     //no extra segments to collide with, because only one segment in total
                     return maxDist;
                 }
@@ -75,11 +75,11 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
                 //round to the next segment wall, but with epsilon margin like vanilla
 
                 //using large epsilon and extra check here because +- shapeOffset can cause larger floating point errors
-                int segment = Mth.ceil((bMax - LARGE_EPSILON - shapeOffset) * segmentsPerUnit);
-                double wallPos = segment / (double) segmentsPerUnit + shapeOffset;
+                int segment = Mth.ceil((bMax - LARGE_EPSILON - shapeOffset) * segments);
+                double wallPos = segment / (double) segments + shapeOffset;
                 if (wallPos < bMax - EPSILON) {
                     ++segment;
-                    wallPos = segment / (double) segmentsPerUnit + shapeOffset;
+                    wallPos = segment / (double) segments + shapeOffset;
                 }
                 //only use the wall when it is actually inside the shape, and not a border / outside the shape
                 if (wallPos < aMax - LARGE_EPSILON) {
@@ -89,14 +89,14 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
             }
         } else {
             //whole code again, just negated for the other direction
-            gap = aMax - bMin;
+            maxMovement = aMax - bMin;
 
-            if (gap <= EPSILON) {
+            if (maxMovement <= EPSILON) {
                 //outside the shape/within margin, move up to/back to boundary
-                return Math.max(gap, maxDist);
+                return Math.max(maxMovement, maxDist);
             } else {
                 //already far enough inside this shape to not collide with the surface
-                if (segmentsPerUnit == 1) {
+                if (segments == 1) {
                     //no extra segments to collide with, because only one segment in total
                     return maxDist;
                 }
@@ -104,11 +104,11 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
                 //round to the next segment wall, but with epsilon margin like vanilla
 
                 //using large epsilon and extra check here because +- shapeOffset can cause larger floating point errors
-                int segment = Mth.floor((bMin + LARGE_EPSILON - shapeOffset) * segmentsPerUnit);
-                double wallPos = segment / (double) segmentsPerUnit + shapeOffset;
+                int segment = Mth.floor((bMin + LARGE_EPSILON - shapeOffset) * segments);
+                double wallPos = segment / (double) segments + shapeOffset;
                 if (wallPos > bMin + EPSILON) {
                     --segment;
-                    wallPos = segment / (double) segmentsPerUnit + shapeOffset;
+                    wallPos = segment / (double) segments + shapeOffset;
                 }
                 //only use the wall when it is actually inside the shape, and not a border / outside the shape
                 if (wallPos > aMin + LARGE_EPSILON) {
