@@ -126,30 +126,22 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
             throw new ArrayIndexOutOfBoundsException();
         }
 
-        switch (axis) {
-            case X:
-                return (index == 0) ? this.minX : this.maxX;
-            case Y:
-                return (index == 0) ? this.minY : this.maxY;
-            case Z:
-                return (index == 0) ? this.minZ : this.maxZ;
-        }
+        return switch (axis) {
+            case X -> (index == 0) ? this.minX : this.maxX;
+            case Y -> (index == 0) ? this.minY : this.maxY;
+            case Z -> (index == 0) ? this.minZ : this.maxZ;
+        };
 
-        throw new IllegalArgumentException();
     }
 
     @Override
     public DoubleList getCoords(Direction.Axis axis) {
-        switch (axis) {
-            case X:
-                return DoubleArrayList.wrap(new double[]{this.minX, this.maxX});
-            case Y:
-                return DoubleArrayList.wrap(new double[]{this.minY, this.maxY});
-            case Z:
-                return DoubleArrayList.wrap(new double[]{this.minZ, this.maxZ});
-        }
+        return switch (axis) {
+            case X -> DoubleArrayList.wrap(new double[] { this.minX, this.maxX });
+            case Y -> DoubleArrayList.wrap(new double[] { this.minY, this.maxY });
+            case Z -> DoubleArrayList.wrap(new double[] { this.minZ, this.maxZ });
+        };
 
-        throw new IllegalArgumentException();
     }
 
 
