@@ -160,7 +160,7 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
     }
 
     @Override
-    protected int findIndex(Direction.Axis axis, double coord) {
+    public int findIndex(Direction.Axis axis, double coord) {
         if (coord < this.min(axis)) {
             return -1;
         }

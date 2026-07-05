@@ -10,14 +10,13 @@ import net.minecraft.world.phys.shapes.BitSetDiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.CubeVoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import util.DoubleUtils;
+import util.TestUtils;
 
 import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.DoublePredicate;
-import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 
 public class RandomizedAABBMoveAgainstCubeTest {
@@ -40,7 +39,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
         forEachRandomPosition((position, shapeProvider) -> {
             VoxelShape originCube = shapeProvider.apply(position);
             AABB aabb = new AABB(position.x(), position.y() + 2, position.z(), position.x() + 1, position.y() + 3, position.z() + 1);
-            assertEquals(1 + position.y() - aabb.minY, () -> originCube.collide(Direction.Axis.Y, aabb, -5), position, "testMoveAgainstSimpleCube");
+            TestUtils.assertEquals(1 + position.y() - aabb.minY, () -> originCube.collide(Direction.Axis.Y, aabb, -5), position, "testMoveAgainstSimpleCube");
         }, new Random(SEED));
     }
 
@@ -124,7 +123,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
             VoxelShape cubeBelow = shapeProvider.apply(position);
             double decisionBoundary = getDecisionBoundaryForNegativeMovementPushedBackwards(position.y() + 1);
             AABB aabb = new AABB(position.x(), decisionBoundary, position.z(), position.x() + 1, position.y() + 1 + 3, position.z() + 1);
-            assertEquals(position.y() + 1 - aabb.minY, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeBackwards");
+            TestUtils.assertEquals(position.y() + 1 - aabb.minY, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeBackwards");
         }, new Random(SEED));
     }
 
@@ -134,7 +133,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
             VoxelShape cubeBelow = shapeProvider.apply(position);
             double decisionBoundary = getDecisionBoundaryForNegativeMovementPushedBackwards(position.y() + 1);
             AABB aabb = new AABB(position.x(), Math.nextDown(decisionBoundary), position.z(), position.x() + 1, position.y() + 1 + 3, position.z() + 1);
-            assertEquals(-0.05, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeBarelyForwards");
+            TestUtils.assertEquals(-0.05, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeBarelyForwards");
         }, new Random(SEED));
     }
 
@@ -149,7 +148,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
 
                 AABB aabb = new AABB(position.x(), coord + 0.01, position.z(), position.x() + 1, position.y() + 3, position.z() + 1);
                 double expected = isLastWall ? -5 : coord - aabb.minY;
-                assertEquals(expected, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -5), position, "testMoveNegativeAgainstInnerWall");
+                TestUtils.assertEquals(expected, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -5), position, "testMoveNegativeAgainstInnerWall");
             }
         }, new Random(SEED));
     }
@@ -165,7 +164,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
                 double decisionBoundary = getDecisionBoundaryForNegativeMovementPushedBackwards(coord);
                 AABB aabb = new AABB(position.x(), decisionBoundary, position.z(), position.x() + 1, position.y() + 1 + 3, position.z() + 1);
                 double expected = isLastWall ? -0.05 : coord - aabb.minY;
-                assertEquals(expected, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeAgainstInnerWallBackwards");
+                TestUtils.assertEquals(expected, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeAgainstInnerWallBackwards");
             }
         }, new Random(SEED));
     }
@@ -179,7 +178,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
                 double coord = coords.getDouble(i);
                 double decisionBoundary = getDecisionBoundaryForNegativeMovementPushedBackwards(coord);
                 AABB aabb = new AABB(position.x(), Math.nextDown(decisionBoundary), position.z(), position.x() + 1, position.y() + 1 + 3, position.z() + 1);
-                assertEquals(-0.05, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeAgainstInnerWallBarelyForwards");
+                TestUtils.assertEquals(-0.05, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveNegativeAgainstInnerWallBarelyForwards");
             }
         }, new Random(SEED));
     }
@@ -195,7 +194,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
 
                 AABB aabb = new AABB(position.x(), position.y() - 3, position.z(), position.x() + 1, coord - 0.01, position.z() + 1);
                 double expected = isLastWall ? 5 : coord - aabb.maxY;
-                assertEquals(expected, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 5), position, "testMovePositiveAgainstInnerWall");
+                TestUtils.assertEquals(expected, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 5), position, "testMovePositiveAgainstInnerWall");
             }
         }, new Random(SEED));
     }
@@ -211,7 +210,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
                 double decisionBoundary = getDecisionBoundaryForPositiveMovementPushedBackwards(coord);
                 AABB aabb = new AABB(position.x(), position.y() - 3, position.z(), position.x() + 1, decisionBoundary, position.z() + 1);
                 double expected = isLastWall ? 0.05 : coord - aabb.maxY;
-                assertEquals(expected, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveAgainstInnerWallBackwards");
+                TestUtils.assertEquals(expected, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveAgainstInnerWallBackwards");
             }
         }, new Random(SEED));
     }
@@ -225,7 +224,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
                 double coord = coords.getDouble(i);
                 double decisionBoundary = getDecisionBoundaryForPositiveMovementPushedBackwards(coord);
                 AABB aabb = new AABB(position.x(), position.y() - 3, position.z(), position.x() + 1, Math.nextUp(decisionBoundary), position.z() + 1);
-                assertEquals(0.05, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveAgainstInnerWallBarelyForwards");
+                TestUtils.assertEquals(0.05, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveAgainstInnerWallBarelyForwards");
             }
         }, new Random(SEED));
     }
@@ -236,7 +235,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
             VoxelShape cubeAbove = shapeProvider.apply(position);
             double decisionBoundary = getDecisionBoundaryForPositiveMovementPushedBackwards(position.y());
             AABB aabb = new AABB(position.x(), position.y() - 3, position.z(), position.x() + 1, decisionBoundary, position.z() + 1);
-            assertEquals(position.y() - aabb.maxY, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveBackwards");
+            TestUtils.assertEquals(position.y() - aabb.maxY, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveBackwards");
         }, new Random(SEED));
     }
 
@@ -246,7 +245,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
             VoxelShape cubeAbove = shapeProvider.apply(position);
             double decisionBoundary = getDecisionBoundaryForPositiveMovementPushedBackwards(position.y());
             AABB aabb = new AABB(position.x(), position.y() - 3, position.z(), position.x() + 1, Math.nextUp(decisionBoundary), position.z() + 1);
-            assertEquals(0.05, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveBarelyForwards");
+            TestUtils.assertEquals(0.05, () -> cubeAbove.collide(Direction.Axis.Y, aabb, 0.05), position, "testMovePositiveBarelyForwards");
         }, new Random(SEED));
     }
 
@@ -262,13 +261,13 @@ public class RandomizedAABBMoveAgainstCubeTest {
 
             AABB aabb = new AABB(position.x(), decisionBoundary, position.z(), position.x() + 1, decisionBoundary2, position.z() + 1);
             double expected = 1 + position.y() - aabb.minY;
-            double yMovement = assertEquals(expected, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveBackwardsTwice(A)");
+            double yMovement = TestUtils.assertEquals(expected, () -> cubeBelow.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveBackwardsTwice(A)");
 
             double expected2 = shapeYOffset2 - aabb.maxY;
             if (Math.abs(expected) < 1e-7) {
                 expected2 = 0.0;
             }
-            assertEquals(expected2, () -> cubeAbove.collide(Direction.Axis.Y, aabb, yMovement), position, "testMoveBackwardsTwice(B)");
+            TestUtils.assertEquals(expected2, () -> cubeAbove.collide(Direction.Axis.Y, aabb, yMovement), position, "testMoveBackwardsTwice(B)");
 
         }, new Random(SEED));
     }
@@ -283,27 +282,11 @@ public class RandomizedAABBMoveAgainstCubeTest {
             double decisionBoundary2 = getDecisionBoundaryForPositiveMovementPushedBackwards(shapeYOffset2);
 
             AABB aabb = new AABB(position.x(), decisionBoundary, position.z(), position.x() + 1, decisionBoundary2, position.z() + 1);
-            double yMovement = assertEquals(-0.05, () -> cubeAbove.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveBackwardsTwice(B)");
+            double yMovement = TestUtils.assertEquals(-0.05, () -> cubeAbove.collide(Direction.Axis.Y, aabb, -0.05), position, "testMoveBackwardsTwice(B)");
 
-            assertEquals(1 + position.y() - aabb.minY, () -> cubeBelow.collide(Direction.Axis.Y, aabb, yMovement), position, "testMoveBackwardsTwice(A)");
+            TestUtils.assertEquals(1 + position.y() - aabb.minY, () -> cubeBelow.collide(Direction.Axis.Y, aabb, yMovement), position, "testMoveBackwardsTwice(A)");
 
         }, new Random(SEED));
-    }
-
-    private static double assertEquals(double expected, DoubleSupplier computation, Vec3 position, String testName) {
-        String message = "test=" + testName + ", x=" + position.x() + ", y=" + position.y() + ", z=" + position.z();
-        double result = computation.getAsDouble();
-        try {
-            Assertions.assertEquals(expected, result, message);
-            return result;
-        } catch (AssertionError error) {
-            //Add breakpoint here for debugging
-            double recomputed = computation.getAsDouble();
-            recomputed = computation.getAsDouble();
-            recomputed = computation.getAsDouble();
-            recomputed = computation.getAsDouble();
-            throw error;
-        }
     }
 
 }

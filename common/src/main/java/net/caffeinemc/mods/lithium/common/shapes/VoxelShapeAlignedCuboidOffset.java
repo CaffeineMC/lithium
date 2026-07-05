@@ -145,7 +145,7 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
     }
 
     @Override
-    protected int findIndex(Direction.Axis axis, double coord) {
+    public int findIndex(Direction.Axis axis, double coord) {
         return switch (axis) {
             case X -> findIndex(coord, this.xOffset, this.getXSegments());
             case Y -> findIndex(coord, this.yOffset, this.getYSegments());

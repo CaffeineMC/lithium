@@ -163,7 +163,7 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
     }
 
     @Override
-    protected int findIndex(Direction.Axis axis, double coord) {
+    public int findIndex(Direction.Axis axis, double coord) {
         int segments = switch (axis) {
             case X -> this.getXSegments();
             case Y -> this.getYSegments();
