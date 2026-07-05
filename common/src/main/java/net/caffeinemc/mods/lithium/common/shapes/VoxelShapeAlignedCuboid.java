@@ -75,6 +75,8 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
 
     /**
      * Determine how far the movement is possible.
+     * <p>
+     * Assumption: No two walls of the voxelShape are super close to each other, super close could be defined as distance < 1e-5
      */
     private static double limitMovement(double maxDist, int segments, double sMin, double sMax, double bMin, double bMax) {
         double maxMovement;
@@ -86,52 +88,59 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
                 //outside the shape and still far enough away for no collision at all
                 return maxDist;
             }
-            double max = bMax - EPSILON;
-            if (!(max < sMin)) {
-                //already far enough inside this shape to not collide with the surface
-                //Vanilla: Shrink box by EPSILON, then use coord < voxelShapeBoundary as boundary
-
-                //Now the extra inner walls (due to segments) have to checked
+            double max = bMax - EPSILON; //EPSILON from VoxelShapes#collide
+            //1. FindIndex return value allows iteration
+            //2. newDistance check ("past the wall by more than 1e-7?") - permits the wall to push backwards by up to 1e-7
+            if (!(max < sMin) || maxMovement < -1.0E-7) {
+                //Far enough inside to not collide with outer wall
                 if (segments == 1) {
+                    //Shape has no inner walls
                     return maxDist;
                 }
                 int nextWallIndex = findIndex(max, segments) + 1; // findIndex returns the lower wall, +1 as this is towards positive
-                //The outermost walls (non-inner wall) only have collision if movement direction is towards the shape from the outside
                 double wall = nextWallIndex / (double) segments;
-                boolean isNotBackWall = wall < sMax - LARGE_EPSILON;
+                //Only inner walls are double-sided in vanilla
+                boolean isNotBackWall = wall < sMax - LARGE_EPSILON; //Assuming that no two walls are super close to each other
                 if (isNotBackWall) {
-                    return Math.min(maxDist, wall - bMax);
+                    double newMaxMovement = wall - bMax;
+                    //1. FindIndex return value already checked, since we called the function
+                    //2. newDistance check ("past the wall by more than 1e-7?") - permits the wall to push backwards by up to 1e-7
+                    if (newMaxMovement < -1.0E-7) {
+                        //Far enough inside to not collide with the inner wall
+                        //Assuming that no two walls are super close to each other
+                        return maxDist;
+                    }
+                    return Math.min(maxDist, newMaxMovement);
                 }
                 return maxDist;
             }
-            //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
         } else {
             maxMovement = sMax - bMin;
 
             if (maxDist > maxMovement) {
-                //outside the shape and still far enough away for no collision at all
                 return maxDist;
             }
             double min = bMin + EPSILON;
-            if (min < sMax) {
-                //already far enough inside this shape to not collide with the surface
-                //Vanilla: Shrink box by EPSILON, then use coord < voxelShapeBoundary as boundary
-
-                //Now the extra inner walls (due to segments) have to checked
+            //1. FindIndex return value allows iteration. Note this also uses < and not <=, since findIndex includes the boundary in the upper interval
+            //2. newDistance check ("past the wall by more than 1e-7?") - permits the wall to push backwards by up to 1e-7
+            if (min < sMax || maxMovement > 1.0E-7) {
                 if (segments == 1) {
                     return maxDist;
                 }
-                int nextWallIndex = findIndex(min, segments); // findIndex returns the lower wall, no +1 as this is towards negative
-                //The outermost walls (non-inner wall) only have collision if movement direction is towards the shape from the outside
+                int nextWallIndex = findIndex(min, segments); // findIndex returns the lower wall, no +1 here as this is towards negative
                 double wall = nextWallIndex / (double) segments;
-                boolean isNotBackWall = wall > sMin + LARGE_EPSILON; //Wall #0 is the negative outer wall
+                boolean isNotBackWall = wall > sMin + LARGE_EPSILON;
                 if (isNotBackWall) {
-                    return Math.max(maxDist, wall - bMin);
+                    double newMaxMovement = wall - bMin;
+                    if (newMaxMovement > 1.0E-7) {
+                        return maxDist;
+                    }
+                    return Math.max(maxDist, newMaxMovement);
                 }
                 return maxDist;
             }
-            //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
         }
+        //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
         return maxMovement;
     }
 

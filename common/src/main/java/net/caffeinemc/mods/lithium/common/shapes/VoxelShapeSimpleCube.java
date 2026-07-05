@@ -89,9 +89,9 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
         if (maxDist > 0.0D) {
             maxMovement = sMin - bMax;
 
-            if (!(bMax - EPSILON < sMin) || maxDist < maxMovement) {
-                //already far enough inside this shape to not collide with the surface or
-                //outside the shape and still far enough away for no collision at all
+            if (!(bMax - EPSILON < sMin) || maxMovement < -1.0E-7 || maxDist < maxMovement) {
+                //Far enough inside to not collide with the outer wall
+                //or outside the shape and still far enough away for no collision at all
                 return maxDist;
             }
             //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
@@ -99,7 +99,9 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
             //whole code again, just negated for the other direction
             maxMovement = sMax - bMin;
 
-            if (bMin + EPSILON < sMax || maxDist > maxMovement) {
+            if (bMin + EPSILON < sMax || maxMovement > 1.0E-7 || maxDist > maxMovement) {
+                //Far enough inside to not collide with the outer wall
+                //or outside the shape and still far enough away for no collision at all
                 return maxDist;
             }
         }
