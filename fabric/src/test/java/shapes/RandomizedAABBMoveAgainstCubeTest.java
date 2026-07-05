@@ -12,6 +12,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import util.DoubleUtils;
 
 import java.util.Random;
 import java.util.function.BiConsumer;
@@ -49,7 +50,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
         double ulp = 2 * Math.max(Math.ulp(pos), Math.ulp(1e-7));
         double lowerFalse = pos - ulp - (1e-7 + ulp);
         double upperTrue = pos;
-        return getFirstTrue(collideCondition, lowerFalse, upperTrue);
+        return DoubleUtils.getFirstTrue(collideCondition, lowerFalse, upperTrue);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -58,7 +59,7 @@ public class RandomizedAABBMoveAgainstCubeTest {
         double ulp = 2 * Math.max(Math.ulp(pos), Math.ulp(1e-7));
         double lowerTrue = pos - ulp;
         double upperFalse = pos + ulp + (1e-7 + ulp);
-        return getLastTrue(collideCondition, lowerTrue, upperFalse);
+        return DoubleUtils.getLastTrue(collideCondition, lowerTrue, upperFalse);
     }
 
     private static void forEachRandomPosition(BiConsumer<Vec3, Function<Vec3, VoxelShape>> consumer, Random random) {
@@ -305,59 +306,4 @@ public class RandomizedAABBMoveAgainstCubeTest {
         }
     }
 
-    public static double getFirstTrue(DoublePredicate f, double low, double high) {
-        if (!Double.isFinite(low) || !Double.isFinite(high)) {
-            throw new IllegalArgumentException("Lower and upper bound must be finite!");
-        }
-        if (low > high) {
-            throw new IllegalArgumentException("Lower bound must not be greater than upper bound!!");
-        }
-        if (f.test(low)) {
-            throw new IllegalArgumentException("Lower bound must not meet predicate!");
-        }
-        if (!f.test(high)) {
-            throw new IllegalArgumentException("Higher bound must meet predicate!");
-        }
-
-        double ret = computeFirstTrue(f, low, high);
-
-        if (!f.test(ret) || f.test(Math.nextDown(ret))) {
-            ret = computeFirstTrue(f, low, high); //For debugging
-            throw new AssertionError("computeFirstTrue is implemented incorrectly!");
-        }
-        return ret;
-    }
-
-    private static double getLastTrue(DoublePredicate collideCondition, double lowerTrue, double upperFalse) {
-        return Math.nextDown(getFirstTrue(b -> !collideCondition.test(b), lowerTrue, upperFalse));
-    }
-
-    public static double computeFirstTrue(DoublePredicate f, double low, double high) {
-        //predicate always holds for high, never holds for low
-
-        while (low < high) {
-            if (Math.nextUp(low) == high) {
-                return high;
-            }
-
-            double mid = (low + high) / 2.0;
-
-            if (mid <= low || mid >= high) {
-                //In case of precision issues, use another way of computing mid
-                mid = low + (high - low) / 2.0;
-                if (mid <= low || mid >= high) {
-                    //In case of more precision issues, just use anything between high and low
-                    mid = Math.nextUp(low);
-                }
-            }
-
-            if (f.test(mid)) {
-                high = mid;
-            } else {
-                low = mid;
-            }
-        }
-
-        return high;
-    }
 }
