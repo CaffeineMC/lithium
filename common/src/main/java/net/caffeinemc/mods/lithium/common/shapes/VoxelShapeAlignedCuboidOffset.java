@@ -32,28 +32,28 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
     }
 
     @Override
-    public double collideX(AxisCycle cycleDirection, AABB box, double maxDist) {
+    public double collideX(AxisCycle cycleDirection, AABB moving, double maxDist) {
         if (Math.abs(maxDist) < EPSILON) {
             return 0.0D;
         }
 
-        double penetration = this.calculatePenetration(cycleDirection, box, maxDist);
+        double maxMovement = this.limitMovement(cycleDirection, moving, maxDist);
 
-        if ((penetration != maxDist) && this.intersects(cycleDirection, box)) {
-            return penetration;
+        if ((maxMovement != maxDist) && this.intersects(cycleDirection, moving)) {
+            return maxMovement;
         }
 
         return maxDist;
     }
 
-    private double calculatePenetration(AxisCycle dir, AABB box, double maxDist) {
+    private double limitMovement(AxisCycle dir, AABB box, double maxDist) {
         switch (dir) {
             case NONE:
-                return VoxelShapeAlignedCuboidOffset.calculatePenetration(this.minX, this.maxX, this.getXSegments(), this.xOffset, box.minX, box.maxX, maxDist);
+                return VoxelShapeAlignedCuboidOffset.limitMovement(this.minX, this.maxX, this.getXSegments(), this.xOffset, box.minX, box.maxX, maxDist);
             case FORWARD:
-                return VoxelShapeAlignedCuboidOffset.calculatePenetration(this.minZ, this.maxZ, this.getZSegments(), this.zOffset, box.minZ, box.maxZ, maxDist);
+                return VoxelShapeAlignedCuboidOffset.limitMovement(this.minZ, this.maxZ, this.getZSegments(), this.zOffset, box.minZ, box.maxZ, maxDist);
             case BACKWARD:
-                return VoxelShapeAlignedCuboidOffset.calculatePenetration(this.minY, this.maxY, this.getYSegments(), this.yOffset, box.minY, box.maxY, maxDist);
+                return VoxelShapeAlignedCuboidOffset.limitMovement(this.minY, this.maxY, this.getYSegments(), this.yOffset, box.minY, box.maxY, maxDist);
             default:
                 throw new IllegalArgumentException();
         }
@@ -63,7 +63,7 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
     /**
      * Determine how far the movement is possible.
      */
-    private static double calculatePenetration(double aMin, double aMax, final int segmentsPerUnit, double shapeOffset, double bMin, double bMax, double maxDist) {
+    private static double limitMovement(double aMin, double aMax, final int segmentsPerUnit, double shapeOffset, double bMin, double bMax, double maxDist) {
         double gap;
 
         if (maxDist > 0.0D) {

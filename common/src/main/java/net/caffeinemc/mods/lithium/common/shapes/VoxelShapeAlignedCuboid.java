@@ -50,28 +50,28 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
 
 
     @Override
-    public double collideX(AxisCycle cycleDirection, AABB box, double maxDist) {
+    public double collideX(AxisCycle cycleDirection, AABB moving, double maxDist) {
         if (Math.abs(maxDist) < EPSILON) {
             return 0.0D;
         }
 
-        double penetration = this.calculatePenetration(cycleDirection, box, maxDist);
+        double maxMovement = this.limitMovement(cycleDirection, moving, maxDist);
 
-        if ((penetration != maxDist) && this.intersects(cycleDirection, box)) {
-            return penetration;
+        if ((maxMovement != maxDist) && this.intersects(cycleDirection, moving)) {
+            return maxMovement;
         }
 
         return maxDist;
     }
 
-    private double calculatePenetration(AxisCycle dir, AABB box, double maxDist) {
+    private double limitMovement(AxisCycle dir, AABB box, double maxDist) {
         switch (dir) {
             case NONE:
-                return VoxelShapeAlignedCuboid.calculatePenetration(this.minX, this.maxX, this.getXSegments(), box.minX, box.maxX, maxDist);
+                return VoxelShapeAlignedCuboid.limitMovement(this.minX, this.maxX, this.getXSegments(), box.minX, box.maxX, maxDist);
             case FORWARD:
-                return VoxelShapeAlignedCuboid.calculatePenetration(this.minZ, this.maxZ, this.getZSegments(), box.minZ, box.maxZ, maxDist);
+                return VoxelShapeAlignedCuboid.limitMovement(this.minZ, this.maxZ, this.getZSegments(), box.minZ, box.maxZ, maxDist);
             case BACKWARD:
-                return VoxelShapeAlignedCuboid.calculatePenetration(this.minY, this.maxY, this.getYSegments(), box.minY, box.maxY, maxDist);
+                return VoxelShapeAlignedCuboid.limitMovement(this.minY, this.maxY, this.getYSegments(), box.minY, box.maxY, maxDist);
             default:
                 throw new IllegalArgumentException();
         }
@@ -80,7 +80,7 @@ public class VoxelShapeAlignedCuboid extends VoxelShapeSimpleCube {
     /**
      * Determine how far the movement is possible.
      */
-    private static double calculatePenetration(double aMin, double aMax, final int segmentsPerUnit, double bMin, double bMax, double maxDist) {
+    private static double limitMovement(double aMin, double aMax, final int segmentsPerUnit, double bMin, double bMax, double maxDist) {
         double gap;
 
         if (maxDist > 0.0D) {

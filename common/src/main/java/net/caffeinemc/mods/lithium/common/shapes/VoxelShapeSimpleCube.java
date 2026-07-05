@@ -3,7 +3,6 @@ package net.caffeinemc.mods.lithium.common.shapes;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import java.util.List;
 import net.minecraft.core.AxisCycle;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
@@ -11,12 +10,14 @@ import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.List;
+
 /**
  * An efficient implementation of {@link VoxelShape} for a shape with one simple cuboid. Since there are only ever two
  * vertices in a single cuboid (the start and end points), we can eliminate needing to iterate over voxels and to find
  * vertices through using simple comparison logic to pick between either the start or end point.
  * <p>
- * Additionally, the function responsible for determining shape penetration has been simplified and optimized by taking
+ * Additionally, the function responsible for determining shape maxMovement has been simplified and optimized by taking
  * advantage of the fact that there is only ever one voxel in a simple cuboid shape, greatly speeding up collision
  * handling in most cases as block shapes are often nothing more than a single cuboid.
  */
@@ -48,28 +49,28 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
     }
 
     @Override
-    public double collideX(AxisCycle cycleDirection, AABB box, double maxDist) {
+    public double collideX(AxisCycle cycleDirection, AABB moving, double maxDist) {
         if (Math.abs(maxDist) < EPSILON) {
             return 0.0D;
         }
 
-        double penetration = this.calculatePenetration(cycleDirection, box, maxDist);
+        double maxMovement = this.limitMovement(cycleDirection, moving, maxDist);
 
-        if ((penetration != maxDist) && this.intersects(cycleDirection, box)) {
-            return penetration;
+        if ((maxMovement != maxDist) && this.intersects(cycleDirection, moving)) {
+            return maxMovement;
         }
 
         return maxDist;
     }
 
-    private double calculatePenetration(AxisCycle dir, AABB box, double maxDist) {
+    private double limitMovement(AxisCycle dir, AABB box, double maxDist) {
         switch (dir) {
             case NONE:
-                return VoxelShapeSimpleCube.calculatePenetration(this.minX, this.maxX, box.minX, box.maxX, maxDist);
+                return VoxelShapeSimpleCube.limitMovement(this.minX, this.maxX, box.minX, box.maxX, maxDist);
             case FORWARD:
-                return VoxelShapeSimpleCube.calculatePenetration(this.minZ, this.maxZ, box.minZ, box.maxZ, maxDist);
+                return VoxelShapeSimpleCube.limitMovement(this.minZ, this.maxZ, box.minZ, box.maxZ, maxDist);
             case BACKWARD:
-                return VoxelShapeSimpleCube.calculatePenetration(this.minY, this.maxY, box.minY, box.maxY, maxDist);
+                return VoxelShapeSimpleCube.limitMovement(this.minY, this.maxY, box.minY, box.maxY, maxDist);
             default:
                 throw new IllegalArgumentException();
         }
@@ -88,13 +89,13 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
         }
     }
 
-    private static double calculatePenetration(double a1, double a2, double b1, double b2, double maxDist) {
-        double penetration;
+    private static double limitMovement(double a1, double a2, double b1, double b2, double maxDist) {
+        double maxMovement;
 
         if (maxDist > 0.0D) {
-            penetration = a1 - b2;
+            maxMovement = a1 - b2;
 
-            if ((penetration < -EPSILON) || (maxDist < penetration)) {
+            if ((maxMovement < -EPSILON) || (maxDist < maxMovement)) {
                 //already far enough inside this shape to not collide with the surface or
                 //outside the shape and still far enough away for no collision at all
                 return maxDist;
@@ -102,14 +103,14 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
             //allow moving up to the shape but not into it. This also includes going backwards by at most EPSILON.
         } else {
             //whole code again, just negated for the other direction
-            penetration = a2 - b1;
+            maxMovement = a2 - b1;
 
-            if ((penetration > EPSILON) || (maxDist > penetration)) {
+            if ((maxMovement > EPSILON) || (maxDist > maxMovement)) {
                 return maxDist;
             }
         }
 
-        return penetration;
+        return maxMovement;
     }
 
     @Override
@@ -188,7 +189,7 @@ public class VoxelShapeSimpleCube extends VoxelShape implements VoxelShapeCaster
     }
 
     @Override
-    public boolean intersects(AABB box, double blockX, double blockY, double blockZ) {
+    public boolean intersectsJNE(AABB box, double blockX, double blockY, double blockZ) {
         return ((box.minX + 1e-7) < (this.maxX + blockX)) && ((box.maxX - 1e-7) > (this.minX + blockX)) &&
                 ((box.minY + 1e-7) < (this.maxY + blockY)) && ((box.maxY - 1e-7) > (this.minY + blockY)) &&
                 ((box.minZ + 1e-7) < (this.maxZ + blockZ)) && ((box.maxZ - 1e-7) > (this.minZ + blockZ));

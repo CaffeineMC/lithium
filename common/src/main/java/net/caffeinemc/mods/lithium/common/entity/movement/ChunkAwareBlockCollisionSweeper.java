@@ -170,7 +170,7 @@ public abstract class ChunkAwareBlockCollisionSweeper<T> extends AbstractIterato
             return entityBox.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0) ? shape.move(x, y, z) : null;
         }
         if (shape instanceof VoxelShapeCaster) {
-            if (((VoxelShapeCaster) shape).intersects(entityBox, x, y, z)) {
+            if (((VoxelShapeCaster) shape).intersectsJNE(entityBox, x, y, z)) {
                 return shape.move(x, y, z);
             } else {
                 return null;
