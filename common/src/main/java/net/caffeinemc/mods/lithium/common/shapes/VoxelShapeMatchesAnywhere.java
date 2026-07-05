@@ -30,10 +30,10 @@ public class VoxelShapeMatchesAnywhere {
                 }
                 return (predicate.apply(true, false) || predicate.apply(false, true)) ? 1 : 0;
             } else if (predicate.apply(true, false) &&
-                    exceedsShape((VoxelShapeSimpleCube) shapeA, (VoxelShapeSimpleCube) shapeB)) {
+                    exceedsCube((VoxelShapeSimpleCube) shapeA, (VoxelShapeSimpleCube) shapeB)) {
                 return 1;
             } else if (predicate.apply(false, true) &&
-                    exceedsShape((VoxelShapeSimpleCube) shapeB, (VoxelShapeSimpleCube) shapeA)) {
+                    exceedsCube((VoxelShapeSimpleCube) shapeB, (VoxelShapeSimpleCube) shapeA)) {
                 return 1;
             }
             return 0;
@@ -122,21 +122,46 @@ public class VoxelShapeMatchesAnywhere {
                 shapeA.min(Z) > shapeA.max(Z) - 3e-7;
     }
 
+    /**
+     * {@link net.minecraft.world.phys.shapes.IndirectMerger} merges the two VoxelShapes' lattice boundaries with 1e-7
+     * margins. When two boundaries are very close to each other, it removes one of the two.
+     * The merge logic is, given boundary x from the first shape and y from the second shape:
+     * <p>
+     * IF x < y + eps
+     *     IF x < y - eps
+     *         NO MERGE
+     *     ELSE
+     *         MERGE
+     * ELSE
+     *     IF y < x - eps
+     *         NO MERGE
+     *     ELSE
+     *         MERGE
+     * <p>
+     * In total:
+     * boolean keepBoth = ((x < y + eps) && (x < y - eps)) || ((y + eps <= x) && (y < x - eps));
+     * This can be simplified to (checked with z3):
+     * boolean keepBoth = (x < y - eps) || (y < x - eps);
+     * <p>
+     * When not keeping both boundaries, they fall into the same location logically, thus preventing exceeding or intersecting.
+     * <p>
+     * Luckily, this means that the resulting methods are symmetric regarding the two VoxelShape arguments
+     */
     private static boolean exceedsCube(VoxelShapeSimpleCube a, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return a.min(X) < minX - 1e-7 || a.max(X) > maxX + 1e-7 ||
-                a.min(Y) < minY - 1e-7 || a.max(Y) > maxY + 1e-7 ||
-                a.min(Z) < minZ - 1e-7 || a.max(Z) > maxZ + 1e-7;
+        return  a.min(X) < minX - 1e-7 || maxX < a.max(X) - 1e-7 ||
+                a.min(Y) < minY - 1e-7 || maxY < a.max(Y) - 1e-7 ||
+                a.min(Z) < minZ - 1e-7 || maxZ < a.max(Z) - 1e-7;
     }
 
-    private static boolean exceedsShape(VoxelShapeSimpleCube a, VoxelShapeSimpleCube b) {
-        return a.min(X) < b.min(X) - 1e-7 || a.max(X) > b.max(X) + 1e-7 ||
-                a.min(Y) < b.min(Y) - 1e-7 || a.max(Y) > b.max(Y) + 1e-7 ||
-                a.min(Z) < b.min(Z) - 1e-7 || a.max(Z) > b.max(Z) + 1e-7;
+    private static boolean exceedsCube(VoxelShapeSimpleCube a, VoxelShapeSimpleCube b) {
+        return a.min(X) < b.min(X) - 1e-7 || b.max(X) < a.max(X) - 1e-7 ||
+                a.min(Y) < b.min(Y) - 1e-7 || b.max(Y) < a.max(Y) - 1e-7 ||
+                a.min(Z) < b.min(Z) - 1e-7 || b.max(Z) < a.max(Z) - 1e-7;
     }
 
     private static boolean intersects(VoxelShapeSimpleCube a, VoxelShapeSimpleCube b) {
-        return a.min(X) < b.max(X) - 1e-7 && a.max(X) > b.min(X) + 1e-7 &&
-                a.min(Y) < b.max(Y) - 1e-7 && a.max(Y) > b.min(Y) + 1e-7 &&
-                a.min(Z) < b.max(Z) - 1e-7 && a.max(Z) > b.min(Z) + 1e-7;
+        return  a.min(X) < b.max(X) - 1e-7 && b.min(X) < a.max(X) - 1e-7 &&
+                a.min(Y) < b.max(Y) - 1e-7 && b.min(Y) < a.max(Y) - 1e-7 &&
+                a.min(Z) < b.max(Z) - 1e-7 && b.min(Z) < a.max(Z) - 1e-7;
     }
 }
