@@ -139,12 +139,14 @@ public class VoxelShapeAlignedCuboidOffset extends VoxelShapeAlignedCuboid {
 
     @Override
     protected int findIndex(Direction.Axis axis, double coord) {
-        int numSegments;
-        coord = switch (axis) {
-            case X -> (coord - this.xOffset) * (numSegments = this.getXSegments());
-            case Y -> (coord - this.yOffset) * (numSegments = this.getYSegments());
-            case Z -> (coord - this.zOffset) * (numSegments = this.getZSegments());
+        return switch (axis) {
+            case X -> findIndex(coord, this.xOffset, this.getXSegments());
+            case Y -> findIndex(coord, this.yOffset, this.getYSegments());
+            case Z -> findIndex(coord, this.zOffset, this.getZSegments());
         };
-        return Mth.clamp(Mth.floor(coord), -1, numSegments);
+    }
+
+    private static int findIndex(double coord, double offset, int segments) {
+        return Mth.clamp(Mth.floor((coord - offset) * segments), -1, segments);
     }
 }
