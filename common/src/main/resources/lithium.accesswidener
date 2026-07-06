@@ -29,3 +29,4 @@ accessible class net/minecraft/world/entity/ai/behavior/AcquirePoi$JitteredLinea
 
 
 accessible method net/minecraft/world/phys/shapes/VoxelShape findIndex (Lnet/minecraft/core/Direction$Axis;D)I
+accessible method net/minecraft/world/phys/shapes/CubeVoxelShape findIndex (Lnet/minecraft/core/Direction$Axis;D)I
