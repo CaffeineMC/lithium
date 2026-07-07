@@ -9,6 +9,9 @@
   "injectors" : {
     "defaultRequire" : 1
   },
+  "overwrites" : {
+    "conformVisibility" : true
+  },
   "mixins" : [
     "ai.non_poi_block_search.HoglinSpecificSensorMixin",
     "ai.non_poi_block_search.MoveToBlockGoalMixin",
