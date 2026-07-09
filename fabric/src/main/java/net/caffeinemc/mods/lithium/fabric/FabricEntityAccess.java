@@ -17,7 +17,7 @@ public class FabricEntityAccess implements PlatformEntityAccess {
         for (EnderDragonPart enderDragonPart : level.dragonParts()) {
             if (enderDragonPart != excludedEntity
                     && enderDragonPart.parentMob != excludedEntity
-                    && entityFilter.test(enderDragonPart) &&
+                    && (entityFilter == null || entityFilter.test(enderDragonPart)) &&
                     box.intersects(enderDragonPart.getBoundingBox())
             ) {
                 entities.add(enderDragonPart);

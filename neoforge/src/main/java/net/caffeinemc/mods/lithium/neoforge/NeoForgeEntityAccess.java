@@ -17,7 +17,7 @@ public class NeoForgeEntityAccess implements PlatformEntityAccess {
         for (PartEntity<?> partEntity : level.dragonParts()) {
             if (partEntity != excludedEntity
                     && partEntity.getParent() != excludedEntity
-                    && entityFilter.test(partEntity)
+                    && (entityFilter == null || entityFilter.test(partEntity))
                     && box.intersects(partEntity.getBoundingBox())
             ) {
                 entities.add(partEntity);

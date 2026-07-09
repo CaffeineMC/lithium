@@ -46,7 +46,9 @@ public class WorldHelper {
             EntitySectionStorage<Entity> cache = getEntityCacheOrNull(world);
             if (cache != null) {
                 Profiler.get().incrementCounter("getEntities");
-                return getEntitiesOfEntityGroupWithoutDragonPieces(cache, collidingEntity, EntityClassGroup.NoDragonClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, null);
+                //Include dragon parts and other multipart entity pieces like vanilla's Level.getEntities does.
+                //Vanilla dragon parts do not pass the collision predicates, but modded parts may (e.g. multipart shield entities).
+                return getEntitiesOfEntityGroupPlusDragonPieces(world, cache, collidingEntity, EntityClassGroup.NoDragonClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, null);
             }
         }
         //use vanilla code in case the shortcut is not applicable
@@ -60,7 +62,8 @@ public class WorldHelper {
                 EntitySectionStorage<Entity> cache = getEntityCacheOrNull(world);
                 if (cache != null) {
                     Profiler.get().incrementCounter("getEntities");
-                    return getEntitiesOfEntityGroupWithoutDragonPieces(cache, collidingEntity, EntityClassGroup.NoDragonClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, entityFilter);
+                    //Include dragon parts and other multipart entity pieces like vanilla's Level.getEntities does.
+                    return getEntitiesOfEntityGroupPlusDragonPieces(world, cache, collidingEntity, EntityClassGroup.NoDragonClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, entityFilter);
                 }
             }
         }
