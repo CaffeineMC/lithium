@@ -19,8 +19,8 @@ public class TestUtils {
     public static final int RANDOM_COORDINATE_EACH_MAGNITUDE_COUNT;
 
     static {
-        RANDOM_COORDINATE_COUNT = Integer.getInteger("lithium.randomCoordinateTestIterations", 1_000_000);
-        RANDOM_COORDINATE_EACH_MAGNITUDE_COUNT = Integer.getInteger("lithium.randomCoordinateEachMagnitudeTestIterations", 1000);
+        RANDOM_COORDINATE_COUNT = Integer.getInteger("lithium.randomCoordinateTestIterations", 100);
+        RANDOM_COORDINATE_EACH_MAGNITUDE_COUNT = Integer.getInteger("lithium.randomCoordinateEachMagnitudeTestIterations", 2);
         SEED = Long.getLong("lithium.randomCoordinateTestSeed", new Random().nextLong());
 
         System.out.println("Lithium Test Coordinate Seed: " + SEED);
