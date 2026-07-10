@@ -7,9 +7,9 @@ import net.caffeinemc.mods.lithium.common.reflection.ReflectionUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Shulker;
-import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.BreezeWindCharge;
-import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.WindCharge;
-import net.minecraft.world.entity.vehicle.minecart.Minecart;
+import net.minecraft.world.entity.projectile.windcharge.BreezeWindCharge;
+import net.minecraft.world.entity.projectile.windcharge.WindCharge;
+import net.minecraft.world.entity.vehicle.Minecart;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiPredicate;
@@ -33,7 +33,7 @@ public class EntityClassGroup {
 
     static {
         CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE = new EntityClassGroup(
-                (Class<?> entityClass, Supplier<EntityType<?>> _) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canCollideWith", Entity.class));
+                (Class<?> entityClass, Supplier<EntityType<?>> ignored) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canCollideWith", Entity.class));
 
         //sanity check: in case method names changed, fail
         if ((!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(Minecart.class, EntityType.MINECART))) {
@@ -49,7 +49,7 @@ public class EntityClassGroup {
         CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.clear();
 
         BOAT_SHULKER_LIKE_COLLISION = new EntityClassGroup(
-                (Class<?> entityClass, Supplier<EntityType<?>> _) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canBeCollidedWith", Entity.class));
+                (Class<?> entityClass, Supplier<EntityType<?>> ignored) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canBeCollidedWith", Entity.class));
 
         //sanity check: in case method names changed, fail
         if ((!BOAT_SHULKER_LIKE_COLLISION.contains(Shulker.class, EntityType.SHULKER))) {

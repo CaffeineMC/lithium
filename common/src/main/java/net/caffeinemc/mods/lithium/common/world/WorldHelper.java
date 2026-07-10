@@ -14,6 +14,7 @@ import net.minecraft.util.AbortableIterationConsumer;
 import net.minecraft.util.ClassInstanceMultiMap;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.level.EntityGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntitySectionStorage;
@@ -48,7 +49,7 @@ public class WorldHelper {
             EntitySectionStorage<Entity> cache = getEntityCacheOrNull(world);
             if (cache != null) {
                 world.getProfiler().incrementCounter("getEntities");
-                return getEntitiesOfEntityGroupPlusDragonPieces(world, cache, collidingEntity, EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, null);
+                return getEntitiesOfEntityGroupIncludingDragonPieces(world, cache, collidingEntity, EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, null);
             }
         }
         //use vanilla code in case the shortcut is not applicable
@@ -65,7 +66,7 @@ public class WorldHelper {
                 EntitySectionStorage<Entity> cache = getEntityCacheOrNull(world);
                 if (cache != null) {
                     world.getProfiler().incrementCounter("getEntities");
-                    return getEntitiesOfEntityGroupPlusDragonPieces(world, cache, collidingEntity, EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, entityFilter);
+                    return getEntitiesOfEntityGroupIncludingDragonPieces(world, cache, collidingEntity, EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, entityFilter);
                 }
             }
         }
@@ -93,7 +94,7 @@ public class WorldHelper {
         return null;
     }
 
-    public static ArrayList<Entity> getEntitiesOfEntityGroupWithoutDragonPieces(EntitySectionStorage<Entity> cache, Entity excludedEntity, EntityClassGroup entityClassGroup, AABB box, Predicate<? super Entity> entityFilter) {
+    public static List<Entity> getEntitiesOfEntityGroupIncludingDragonPieces(Level level, EntitySectionStorage<Entity> cache, Entity excludedEntity, EntityClassGroup entityClassGroup, AABB box, Predicate<? super Entity> entityFilter) {
         ArrayList<Entity> entities = new ArrayList<>();
         cache.forEachAccessibleNonEmptySection(box, section -> {
             //noinspection unchecked
@@ -102,21 +103,20 @@ public class WorldHelper {
             Collection<Entity> entitiesOfType = ((ClassGroupFilterableList<Entity>) allEntities).lithium$getAllOfGroupType(entityClassGroup);
             if (!entitiesOfType.isEmpty()) {
                 for (Entity entity : entitiesOfType) {
-                    if (entity.getBoundingBox().intersects(box) && !entity.isSpectator() && entity != excludedEntity && (entityFilter == null || entityFilter.test(entity))) {
-                        entities.add(entity);
+                    if (entity.getBoundingBox().intersects(box) && entity != excludedEntity) {
+                        if (!entity.isSpectator() && (entityFilter == null || entityFilter.test(entity))) {
+                            entities.add(entity);
+                        }
+                        if (entity instanceof EnderDragon enderDragon) {
+                            PlatformEntityAccess.INSTANCE.addSubEntities(level, enderDragon, box, entityFilter, entities);
+                        }
                     }
                 }
             }
+            PlatformEntityAccess.INSTANCE.addPartEntities(level, excludedEntity, box, entityFilter == null ? EntitySelector.NO_SPECTATORS : entityFilter, entities);
+
             return AbortableIterationConsumer.Continuation.CONTINUE;
         });
-        return entities;
-    }
-
-    public static List<Entity> getEntitiesOfEntityGroupPlusDragonPieces(Level level, EntitySectionStorage<Entity> cache, Entity excludedEntity, EntityClassGroup entityClassGroup, AABB box, Predicate<? super Entity> entityFilter) {
-        ArrayList<Entity> entities = getEntitiesOfEntityGroupWithoutDragonPieces(cache, excludedEntity, entityClassGroup, box, entityFilter);
-        if (!level.dragonParts().isEmpty()) {
-            PlatformEntityAccess.INSTANCE.addEnderDragonParts(level, excludedEntity, box, entityFilter == null ? EntitySelector.NO_SPECTATORS : entityFilter, entities);
-        }
         return entities;
     }
 
