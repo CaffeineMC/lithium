@@ -14,6 +14,7 @@ import net.minecraft.util.AbortableIterationConsumer;
 import net.minecraft.util.ClassInstanceMultiMap;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.level.EntityGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.entity.EntitySectionStorage;
@@ -32,9 +33,11 @@ public class WorldHelper {
      * Partial [VanillaCopy]
      * The returned entity iterator is only used for collision interactions. As most entities do not collide with other
      * entities (cramming is different), getting them is not necessary. This is why we only get entities when they override
-     * {@link Entity#canBeCollidedWith()} if the reference entity does not override {@link Entity#canCollideWith(Entity)}.
+     * {@link Entity#canBeCollidedWith(Entity)} if the reference entity does not override {@link Entity#canCollideWith(Entity)}.
      * Note that the returned iterator contains entities that override these methods. This does not mean that these methods
      * always return true.
+     * <p>
+     * The caller must check canBeCollidedWith and canCollideWith
      *
      * @param entityView      the world
      * @param box             the box the entities have to collide with
@@ -46,7 +49,7 @@ public class WorldHelper {
             EntitySectionStorage<Entity> cache = getEntityCacheOrNull(world);
             if (cache != null) {
                 Profiler.get().incrementCounter("getEntities");
-                return getEntitiesOfEntityGroupWithoutDragonPieces(cache, collidingEntity, EntityClassGroup.NoDragonClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, null);
+                return getEntitiesOfEntityGroupPlusDragonPieces(world, cache, collidingEntity, EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, null);
             }
         }
         //use vanilla code in case the shortcut is not applicable
@@ -54,13 +57,16 @@ public class WorldHelper {
         return entityView.getEntities(collidingEntity, box);
     }
 
+    /**
+     * Get entities like the {@link EntityGetter#getEntities(Entity, AABB, Predicate)} call inside {@link EntityGetter#getEntityCollisions(Entity, AABB)}
+     */
     public static List<Entity> getOtherEntitiesForCollision(EntityGetter entityView, AABB box, @Nullable Entity collidingEntity, Predicate<? super Entity> entityFilter) {
         if (!CUSTOM_TYPE_FILTERABLE_LIST_DISABLED && entityView instanceof Level world) {
             if (collidingEntity == null || !EntityClassGroup.CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(collidingEntity)) {
                 EntitySectionStorage<Entity> cache = getEntityCacheOrNull(world);
                 if (cache != null) {
                     Profiler.get().incrementCounter("getEntities");
-                    return getEntitiesOfEntityGroupWithoutDragonPieces(cache, collidingEntity, EntityClassGroup.NoDragonClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, entityFilter);
+                    return getEntitiesOfEntityGroupPlusDragonPieces(world, cache, collidingEntity, EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION, box, entityFilter);
                 }
             }
         }

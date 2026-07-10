@@ -12,7 +12,7 @@ public class SectionedColliderEntityMovementTracker extends SectionedEntityMovem
     public static final boolean ENABLED = false; //TODO replace constant with appropriate class instanceof interface once implemented mixins
 
     public SectionedColliderEntityMovementTracker(WorldSectionBox worldSectionBox) {
-        super(worldSectionBox, EntityClassGroup.NoDragonClassGroup.BOAT_SHULKER_LIKE_COLLISION);
+        super(worldSectionBox, EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION);
     }
 
     public static SectionedColliderEntityMovementTracker registerAt(ServerLevel world, AABB interactionArea) {

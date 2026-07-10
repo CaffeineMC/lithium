@@ -7,7 +7,6 @@ import net.caffeinemc.mods.lithium.common.reflection.ReflectionUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.BreezeWindCharge;
 import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.WindCharge;
@@ -31,13 +30,13 @@ public class EntityClassGroup {
     private static final byte ABSENT_VALUE = (byte) 3;
 
     public static final EntityClassGroup CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE; //aka entities that will attempt to collide with all other entities when moving
+    public static final EntityClassGroup BOAT_SHULKER_LIKE_COLLISION; //aka entities that other entities will do block-like collisions with when moving
 
     static {
-        String remapped_collidesWith = "canCollideWith";
         CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE = new EntityClassGroup(
-                (Class<?> entityClass, Supplier<EntityType<?>> entityType) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, remapped_collidesWith, Entity.class));
+                (Class<?> entityClass, Supplier<EntityType<?>> _) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canCollideWith", Entity.class));
 
-        //sanity check: in case intermediary mappings changed, we fail
+        //sanity check: in case method names changed, fail
         if ((!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(Minecart.class, EntityTypes.MINECART))) {
             throw new AssertionError();
         }
@@ -49,6 +48,15 @@ public class EntityClassGroup {
             Logger.getLogger("Lithium EntityClassGroup").warning("Either Lithium EntityClassGroup is broken or something else gave Shulkers the minecart-like collision behavior.");
         }
         CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.clear();
+
+        BOAT_SHULKER_LIKE_COLLISION = new EntityClassGroup(
+                (Class<?> entityClass, Supplier<EntityType<?>> _) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canBeCollidedWith", Entity.class));
+
+        //sanity check: in case method names changed, fail
+        if ((!BOAT_SHULKER_LIKE_COLLISION.contains(Shulker.class, EntityTypes.SHULKER))) {
+            throw new AssertionError();
+        }
+        BOAT_SHULKER_LIKE_COLLISION.clear();
     }
 
     private final BiPredicate<Class<?>, Supplier<EntityType<?>>> classAndTypeFitEvaluator;
@@ -146,29 +154,5 @@ public class EntityClassGroup {
             }
         }
         return contains;
-    }
-
-    public static class NoDragonClassGroup extends EntityClassGroup {
-        public static final NoDragonClassGroup BOAT_SHULKER_LIKE_COLLISION; //aka entities that other entities will do block-like collisions with when moving
-
-        static {
-            String remapped_canBeCollidedWith = "canBeCollidedWith";
-            BOAT_SHULKER_LIKE_COLLISION = new NoDragonClassGroup(
-                    (Class<?> entityClass, Supplier<EntityType<?>> entityType) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, remapped_canBeCollidedWith, Entity.class));
-
-            if ((!BOAT_SHULKER_LIKE_COLLISION.contains(Shulker.class, EntityTypes.SHULKER))) {
-                throw new AssertionError();
-            }
-            BOAT_SHULKER_LIKE_COLLISION.clear();
-        }
-
-        public NoDragonClassGroup(BiPredicate<Class<?>, Supplier<EntityType<?>>> classAndTypeFitEvaluator) {
-            super(classAndTypeFitEvaluator);
-            if (classAndTypeFitEvaluator.test(EnderDragon.class, () -> {
-                throw new IllegalArgumentException("EntityClassGroup.NoDragonClassGroup cannot be initialized: Must exclude EnderDragonEntity without checking entity type!");
-            })) {
-                throw new IllegalArgumentException("EntityClassGroup.NoDragonClassGroup cannot be initialized: Must exclude EnderDragonEntity!");
-            }
-        }
     }
 }

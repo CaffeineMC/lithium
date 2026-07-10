@@ -31,7 +31,7 @@ public abstract class MovementTrackerHelper {
             MOVEMENT_NOTIFYING_ENTITY_CLASSES = List.of();
         }
         if (SectionedColliderEntityMovementTracker.ENABLED) {
-            MOVEMENT_NOTIFYING_ENTITY_CLASS_GROUPS = List.of(EntityClassGroup.NoDragonClassGroup.BOAT_SHULKER_LIKE_COLLISION);
+            MOVEMENT_NOTIFYING_ENTITY_CLASS_GROUPS = List.of(EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION);
         } else {
             MOVEMENT_NOTIFYING_ENTITY_CLASS_GROUPS = List.of();
         }
