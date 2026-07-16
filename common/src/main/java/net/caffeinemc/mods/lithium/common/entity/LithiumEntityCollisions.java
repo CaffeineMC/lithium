@@ -267,6 +267,7 @@ public class LithiumEntityCollisions {
         return false;
     }
 
+    //TODO this makes the collision code include fewer blocks -> possibly a <1e-7 to 0 clipping is skipped. Reported by Andrews54757
     public static AABB getSmallerBoxForSingleAxisMovement(Vec3 movement, AABB entityBoundingBox, double velY, double velX, double velZ) {
         double minX = entityBoundingBox.minX;
         double minY = entityBoundingBox.minY;
