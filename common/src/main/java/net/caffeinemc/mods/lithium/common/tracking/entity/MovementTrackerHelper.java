@@ -3,6 +3,7 @@ package net.caffeinemc.mods.lithium.common.tracking.entity;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import net.caffeinemc.mods.lithium.api.inventory.LithiumInventory;
 import net.caffeinemc.mods.lithium.common.entity.EntityClassGroup;
+import net.caffeinemc.mods.lithium.common.entity.movement.CollisionEntityClassGroups;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -31,7 +32,7 @@ public abstract class MovementTrackerHelper {
             MOVEMENT_NOTIFYING_ENTITY_CLASSES = List.of();
         }
         if (SectionedColliderEntityMovementTracker.ENABLED) {
-            MOVEMENT_NOTIFYING_ENTITY_CLASS_GROUPS = List.of(EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION);
+            MOVEMENT_NOTIFYING_ENTITY_CLASS_GROUPS = List.of(CollisionEntityClassGroups.BOAT_SHULKER_LIKE_COLLISION);
         } else {
             MOVEMENT_NOTIFYING_ENTITY_CLASS_GROUPS = List.of();
         }

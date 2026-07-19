@@ -15,7 +15,7 @@ import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.Abstra
 
 import java.util.function.Supplier;
 
-public class ProjectileEntityClassGroup {
+public class ProjectileEntityClassGroups {
 
     /**
      * Projectiles that do not override {@link net.minecraft.world.entity.projectile.Projectile#canHitEntity(Entity)} or only do so to restrict the set of hittable entities

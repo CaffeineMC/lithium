@@ -3,19 +3,12 @@ package net.caffeinemc.mods.lithium.common.entity;
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceReferenceImmutablePair;
-import net.caffeinemc.mods.lithium.common.reflection.ReflectionUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.monster.Shulker;
-import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.BreezeWindCharge;
-import net.minecraft.world.entity.projectile.hurtingprojectile.windcharge.WindCharge;
-import net.minecraft.world.entity.vehicle.minecart.Minecart;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 /**
  * Class for grouping Entity classes and Entity types by some property for use in TypeFilterableList
@@ -28,36 +21,6 @@ import java.util.logging.Logger;
 public class EntityClassGroup {
 
     private static final byte ABSENT_VALUE = (byte) 3;
-
-    public static final EntityClassGroup CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE; //aka entities that will attempt to collide with all other entities when moving
-    public static final EntityClassGroup BOAT_SHULKER_LIKE_COLLISION; //aka entities that other entities will do block-like collisions with when moving
-
-    static {
-        CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE = new EntityClassGroup(
-                (Class<?> entityClass, Supplier<EntityType<?>> _) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canCollideWith", Entity.class));
-
-        //sanity check: in case method names changed, fail
-        if ((!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(Minecart.class, EntityTypes.MINECART))) {
-            throw new AssertionError();
-        }
-        if ((!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(WindCharge.class, EntityTypes.WIND_CHARGE)) || (!CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(BreezeWindCharge.class, EntityTypes.BREEZE_WIND_CHARGE))) {
-            throw new AssertionError();
-        }
-        if ((CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(Shulker.class, EntityTypes.SHULKER))) {
-            //should not throw an Error here, because another mod *could* add the method to ShulkerEntity. Warning when this sanity check fails.
-            Logger.getLogger("Lithium EntityClassGroup").warning("Either Lithium EntityClassGroup is broken or something else gave Shulkers the minecart-like collision behavior.");
-        }
-        CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.clear();
-
-        BOAT_SHULKER_LIKE_COLLISION = new EntityClassGroup(
-                (Class<?> entityClass, Supplier<EntityType<?>> _) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canBeCollidedWith", Entity.class));
-
-        //sanity check: in case method names changed, fail
-        if ((!BOAT_SHULKER_LIKE_COLLISION.contains(Shulker.class, EntityTypes.SHULKER))) {
-            throw new AssertionError();
-        }
-        BOAT_SHULKER_LIKE_COLLISION.clear();
-    }
 
     private final BiPredicate<Class<?>, Supplier<EntityType<?>>> classAndTypeFitEvaluator;
     private volatile Reference2ByteOpenHashMap<Class<?>> class2GroupContains; // 0: Not contained (decision based on class only), 1: Contained (decision based on class only), 2: Check containedClassAndTypePairs (decision based on entity type)

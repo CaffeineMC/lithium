@@ -1,6 +1,6 @@
 package net.caffeinemc.mods.lithium.common.tracking.entity;
 
-import net.caffeinemc.mods.lithium.common.entity.EntityClassGroup;
+import net.caffeinemc.mods.lithium.common.entity.movement.CollisionEntityClassGroups;
 import net.caffeinemc.mods.lithium.common.util.tuples.WorldSectionBox;
 import net.caffeinemc.mods.lithium.common.world.LithiumData;
 import net.minecraft.server.level.ServerLevel;
@@ -12,7 +12,7 @@ public class SectionedColliderEntityMovementTracker extends SectionedEntityMovem
     public static final boolean ENABLED = false; //TODO replace constant with appropriate class instanceof interface once implemented mixins
 
     public SectionedColliderEntityMovementTracker(WorldSectionBox worldSectionBox) {
-        super(worldSectionBox, EntityClassGroup.BOAT_SHULKER_LIKE_COLLISION);
+        super(worldSectionBox, CollisionEntityClassGroups.BOAT_SHULKER_LIKE_COLLISION);
     }
 
     public static SectionedColliderEntityMovementTracker registerAt(ServerLevel world, AABB interactionArea) {
