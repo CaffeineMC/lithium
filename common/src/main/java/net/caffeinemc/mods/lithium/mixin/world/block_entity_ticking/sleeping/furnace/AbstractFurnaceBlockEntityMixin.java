@@ -81,6 +81,14 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BlockEntity implem
         }
     }
 
+    //Temporary workaround for vanilla bug where furnaces are not marked for saving when their inventory is modified at slot != 0.
+    // This doesn't fix the vanilla bug, but the furnace will wake up correctly.
+    // https://github.com/CaffeineMC/lithium/issues/765
+    @Inject(method = "setItem", at = @At("RETURN"))
+    private void handleSetChanged(CallbackInfo ci) {
+        this.lithium$handleSetChanged();
+    }
+
     @Override
     public void lithium$handleSetChanged() {
         if (this.isSleeping() && this.level != null && !this.level.isClientSide()) {
