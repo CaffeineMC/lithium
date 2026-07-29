@@ -3,7 +3,7 @@ import org.gradle.internal.extensions.core.extra
 plugins {
     id("java")
     id("net.fabricmc.fabric-loom") version ("1.15-SNAPSHOT") apply (false)
-    id("me.modmuss50.mod-publish-plugin") version ("0.8.1") apply (false)
+    id("me.modmuss50.mod-publish-plugin") version ("2.1.0") apply (false)
 
 }
 

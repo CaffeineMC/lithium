@@ -267,6 +267,8 @@ publishMods {
             end = "$MC_PUBLISHING_MAX_VERSION"
         }
         displayName = "Lithium $mcDisplayVersionLithiumVersion for Fabric"
+        client = true
+        server = true
     }
 
     modrinth {

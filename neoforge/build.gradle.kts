@@ -214,6 +214,8 @@ publishMods {
             end = "$MC_PUBLISHING_MAX_VERSION"
         }
         displayName = "Lithium $mcDisplayVersionLithiumVersion for Neoforge"
+        client = true
+        server = true
     }
 
     modrinth {
