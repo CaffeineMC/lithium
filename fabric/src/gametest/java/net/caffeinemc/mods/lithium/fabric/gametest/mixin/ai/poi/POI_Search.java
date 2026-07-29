@@ -208,7 +208,7 @@ public class POI_Search implements CustomTestMethodInvoker {
 
             int x = random.nextInt(60000000) - 30000000;
             int z = random.nextInt(60000000) - 30000000;
-            int y = random.nextInt(level.getHeight()) - level.getMinY();
+            int y = random.nextInt(level.getHeight()) + level.getMinY();
 
             int chosen = 20 - i;
             double randomPct = 1.0 / Math.pow(2, chosen);
