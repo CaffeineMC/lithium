@@ -31,6 +31,9 @@ jobs:
                   name: build-artifacts
                   path: build/libs
 
+            - name: Run Unit Tests with and without Mixins
+              run: ./gradlew test testVanilla
+
             - name: Run Tests
               run: |
                 for server in fabric neoforge; do
@@ -44,4 +47,3 @@ jobs:
                     ./gradlew "$server:runGameTest"
                   done
                 done
-
