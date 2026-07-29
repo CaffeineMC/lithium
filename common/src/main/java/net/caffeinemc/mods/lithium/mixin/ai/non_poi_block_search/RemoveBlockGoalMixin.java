@@ -48,7 +48,7 @@ public abstract class RemoveBlockGoalMixin extends MoveToBlockGoal implements Li
 
     @Unique
     private static boolean lithium$isValidTargetAbove(ChunkAccess chunkAccess, BlockPos.MutableBlockPos mutable) {
-        return chunkAccess.getBlockState(mutable.move(0, 1, 0)).isAir()
-                && chunkAccess.getBlockState(mutable.move(0, 1, 0)).isAir();
+        return chunkAccess.getBlockState(mutable.above(1)).isAir()
+                && chunkAccess.getBlockState(mutable.above(2)).isAir();
     }
 }
