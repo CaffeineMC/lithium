@@ -28,7 +28,7 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     @Inject(
-            method = "collectEquipmentChanges(Ljava/util/Map;)Ljava/util/Map;",
+            method = "collectEquipmentChanges()Ljava/util/Map;",
             at = @At("HEAD"),
             cancellable = true
     )
