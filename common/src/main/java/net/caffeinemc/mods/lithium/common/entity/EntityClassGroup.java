@@ -49,7 +49,7 @@ public class EntityClassGroup {
         CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.clear();
 
         BOAT_SHULKER_LIKE_COLLISION = new EntityClassGroup(
-                (Class<?> entityClass, Supplier<EntityType<?>> ignored) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canBeCollidedWith", Entity.class));
+                (Class<?> entityClass, Supplier<EntityType<?>> ignored) -> ReflectionUtil.hasMethodOverride(entityClass, Entity.class, true, "canBeCollidedWith"));
 
         //sanity check: in case method names changed, fail
         if ((!BOAT_SHULKER_LIKE_COLLISION.contains(Shulker.class, EntityType.SHULKER))) {
