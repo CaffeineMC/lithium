@@ -441,6 +441,10 @@ Various world generation optimizations
 (default: `true`)  
 World generator settings cache the sea level.
   
+### `mixin.gen.jigsaw_free_space`
+(default: `true`)  
+Jigsaw structure placement (e.g. villages, bastions, trial chambers) tracks the remaining free space using cuboid lists instead of repeatedly joining VoxelShapes
+  
 ### `mixin.math`
 (default: `true`)  
 Various math optimizations

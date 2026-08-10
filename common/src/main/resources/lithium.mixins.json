@@ -164,6 +164,8 @@
     "experimental.entity.block_caching.suffocation.EntityMixin",
     "experimental.entity.item_entity_merging.ItemEntityMixin",
     "gen.cached_generator_settings.NoiseBasedChunkGeneratorMixin",
+    "gen.jigsaw_free_space.JigsawPlacementMixin",
+    "gen.jigsaw_free_space.JigsawPlacementPlacerMixin",
     "math.fast_blockpos.BlockPosMixin",
     "math.fast_blockpos.DirectionMixin",
     "math.fast_util.AABBMixin",
