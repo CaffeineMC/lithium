@@ -121,7 +121,7 @@ public class EntityEquipmentMixin implements EquipmentInfo, ChangeSubscriber.Cou
     }
 
     @Inject(
-            method = "clear", at = @At("RETURN")
+            method = "clear", at = @At("HEAD")
     )
     private void updateOnClear(CallbackInfo ci) {
         if (this.inLevel) {
