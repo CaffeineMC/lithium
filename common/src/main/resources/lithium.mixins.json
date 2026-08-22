@@ -112,6 +112,7 @@
     "chunk.serialization.PalettedContainerMixin",
     "chunk.serialization.SimpleBitStorageMixin",
     "client_tick.entity.unused_brain.AllayMixin",
+    "client_tick.entity.unused_brain.VillagerMixin",
     "collections.attributes.AttributeMapMixin",
     "collections.block_entity_tickers.LevelChunkMixin",
     "collections.brain.BrainMixin",
