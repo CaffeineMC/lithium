@@ -1,8 +1,9 @@
 package net.caffeinemc.mods.lithium.common.block;
 
+import net.minecraft.world.level.block.state.BlockState;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
-import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class TrackedBlockStatePredicate implements Predicate<BlockState> {
     public static final AtomicBoolean FULLY_INITIALIZED;
@@ -15,15 +16,21 @@ public abstract class TrackedBlockStatePredicate implements Predicate<BlockState
     }
 
     private final int index;
+    private final boolean fallbackResult;
 
-    public TrackedBlockStatePredicate(int index) {
+    public TrackedBlockStatePredicate(int index, boolean fallbackResult) {
         if (FULLY_INITIALIZED.get()) {
             throw new IllegalStateException("Lithium Cached BlockState Flags: Cannot register more flags after assuming to be fully initialized.");
         }
         this.index = index;
+        this.fallbackResult = fallbackResult;
     }
 
     public int getIndex() {
         return this.index;
+    }
+
+    public boolean getFallbackResult() {
+        return this.fallbackResult;
     }
 }

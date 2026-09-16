@@ -552,7 +552,7 @@ Allow accessing certain fields and functions that are normally inaccessible
 Allows access to existing BlockEntities without creating new ones
   
 ### `mixin.util.block_tracking`
-(default: `false`)  
+(default: `true`)  
 Chunk sections count certain blocks inside them and provide a method to quickly check whether a chunk contains any of these blocks. Furthermore, chunk sections can notify registered listeners about certain blocks being placed or broken.  
 Requirements:
 - `mixin.util.data_storage=true`

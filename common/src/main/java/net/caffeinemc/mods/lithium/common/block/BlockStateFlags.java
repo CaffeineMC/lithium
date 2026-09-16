@@ -2,9 +2,6 @@ package net.caffeinemc.mods.lithium.common.block;
 
 import net.caffeinemc.mods.lithium.common.ai.pathing.BlockStatePathingCache;
 import net.caffeinemc.mods.lithium.common.ai.pathing.PathNodeCache;
-import net.caffeinemc.mods.lithium.common.entity.FluidCachingEntity;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -20,11 +17,10 @@ public class BlockStateFlags {
     //Counting flags
     public static final TrackedBlockStatePredicate OVERSIZED_SHAPE;
     public static final TrackedBlockStatePredicate PATH_NOT_OPEN;
-    public static final TrackedBlockStatePredicate WATER;
-    public static final TrackedBlockStatePredicate LAVA;
     public static final TrackedBlockStatePredicate RANDOM_TICKING;
 
     public static final TrackedBlockStatePredicate[] FLAGS;
+    public static final int FALLBACK_FLAGS;
 
     //Non counting flags
 //    public static final TrackedBlockStatePredicate ENTITY_TOUCHABLE;
@@ -34,7 +30,7 @@ public class BlockStateFlags {
 
         //TODO add each flag if and only if it is going to be used (corresponding mixins enabled)
         //noinspection ConstantValue
-        OVERSIZED_SHAPE = new TrackedBlockStatePredicate(countingFlags.size()) {
+        OVERSIZED_SHAPE = new TrackedBlockStatePredicate(countingFlags.size(), true) {
             @Override
             public boolean test(BlockState operand) {
                 return operand.hasLargeCollisionShape();
@@ -42,29 +38,8 @@ public class BlockStateFlags {
         };
         countingFlags.add(OVERSIZED_SHAPE);
 
-        if (FluidCachingEntity.class.isAssignableFrom(Entity.class)) {
-            WATER = new TrackedBlockStatePredicate(countingFlags.size()) {
-                @Override
-                public boolean test(BlockState operand) {
-                    return operand.getFluidState().is(FluidTags.WATER);
-                }
-            };
-            countingFlags.add(WATER);
-
-            LAVA = new TrackedBlockStatePredicate(countingFlags.size()) {
-                @Override
-                public boolean test(BlockState operand) {
-                    return operand.getFluidState().is(FluidTags.LAVA);
-                }
-            };
-            countingFlags.add(LAVA);
-        } else {
-            WATER = null;
-            LAVA = null;
-        }
-
         if (BlockStatePathingCache.class.isAssignableFrom(BlockBehaviour.BlockStateBase.class)) {
-            PATH_NOT_OPEN = new TrackedBlockStatePredicate(countingFlags.size()) {
+            PATH_NOT_OPEN = new TrackedBlockStatePredicate(countingFlags.size(), true) {
                 @Override
                 public boolean test(BlockState operand) {
                     return PathNodeCache.getNeighborPathNodeType(operand) != PathType.OPEN;  //type may be null -> is dangerous as fallback
@@ -75,7 +50,7 @@ public class BlockStateFlags {
             PATH_NOT_OPEN = null;
         }
 
-        RANDOM_TICKING = new TrackedBlockStatePredicate(countingFlags.size()) {
+        RANDOM_TICKING = new TrackedBlockStatePredicate(countingFlags.size(), true) {
             @Override
             public boolean test(BlockState operand) {
                 return operand.isRandomlyTicking() || operand.getFluidState().isRandomlyTicking();
@@ -99,5 +74,12 @@ public class BlockStateFlags {
 
 
         FLAGS = flags.toArray(new TrackedBlockStatePredicate[0]);
+
+        int fallbackFlags = 0;
+        for (int i = 0; i < BlockStateFlags.FLAGS.length; i++) {
+            //noinspection ConstantConditions
+            fallbackFlags |= (BlockStateFlags.FLAGS[i].getFallbackResult() ? 1 : 0) << i;
+        }
+        FALLBACK_FLAGS = fallbackFlags;
     }
 }

@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
 public abstract class BlockStateBaseMixin implements BlockStatePathingCache {
+    //TODO this is only initialized if block state flags are initialized too. This should have its own initialization call
     private PathType pathNodeType = null;
     private PathType pathNodeTypeNeighbor = null;
 
