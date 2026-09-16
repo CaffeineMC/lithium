@@ -15,18 +15,19 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathfindingContext;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class PathNodeCache {
     private static boolean isChunkSectionDangerousNeighbor(LevelChunkSection section) {
         return section.getStates()
-                .maybeHas(state -> getNeighborPathNodeType(state) != PathType.OPEN);
+                .maybeHas(state -> getNeighborPathNodeType(state) != PathType.OPEN); //type may be null -> is dangerous as fallback
     }
 
-    public static PathType getPathNodeType(BlockState state) {
+    public static @Nullable PathType getPathNodeType(BlockState state) {
         return ((BlockStatePathingCache) state).lithium$getPathNodeType();
     }
 
-    public static PathType getNeighborPathNodeType(BlockBehaviour.BlockStateBase state) {
+    public static @Nullable PathType getNeighborPathNodeType(BlockBehaviour.BlockStateBase state) {
         return ((BlockStatePathingCache) state).lithium$getNeighborPathNodeType();
     }
 

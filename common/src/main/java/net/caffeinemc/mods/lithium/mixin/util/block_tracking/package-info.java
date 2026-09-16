@@ -7,7 +7,8 @@
                 @MixinConfigDependency(dependencyPath = "mixin.util.chunk_status_tracking"),
                 @MixinConfigDependency(dependencyPath = "mixin.util.initialization"),
                 @MixinConfigDependency(dependencyPath = "mixin.util.section_data_storage")
-        }
+        },
+        enabled = false //Chunk corruption due to multithreading during initialization/invalidation
 )
 package net.caffeinemc.mods.lithium.mixin.util.block_tracking;
 

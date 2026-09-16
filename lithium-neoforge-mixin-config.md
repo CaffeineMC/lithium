@@ -552,7 +552,7 @@ Allow accessing certain fields and functions that are normally inaccessible
 Allows access to existing BlockEntities without creating new ones
   
 ### `mixin.util.block_tracking`
-(default: `true`)  
+(default: `false`)  
 Chunk sections count certain blocks inside them and provide a method to quickly check whether a chunk contains any of these blocks. Furthermore, chunk sections can notify registered listeners about certain blocks being placed or broken.  
 Requirements:
 - `mixin.util.data_storage=true`
@@ -705,7 +705,8 @@ Optimize ice creation and weather checks when it is not raining.
 (default: `true`)  
 Speed up random ticks by evaluating random chances early and using a fast block search.  
 Requirements:
-- `mixin.util.section_data_storage=true`  
+- `mixin.util.section_data_storage=true`
+- `mixin.util.block_tracking=true`  
   
 ### `mixin.world.chunk_ticking.spread_ice`
 (default: `true`)  

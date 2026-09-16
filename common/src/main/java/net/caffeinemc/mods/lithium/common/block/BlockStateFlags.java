@@ -67,7 +67,7 @@ public class BlockStateFlags {
             PATH_NOT_OPEN = new TrackedBlockStatePredicate(countingFlags.size()) {
                 @Override
                 public boolean test(BlockState operand) {
-                    return PathNodeCache.getNeighborPathNodeType(operand) != PathType.OPEN;
+                    return PathNodeCache.getNeighborPathNodeType(operand) != PathType.OPEN;  //type may be null -> is dangerous as fallback
                 }
             };
             countingFlags.add(PATH_NOT_OPEN);

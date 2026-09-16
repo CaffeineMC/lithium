@@ -22,7 +22,7 @@ val FABRIC_LOADER_VERSION by extra { "0.19.5" }
 val FABRIC_API_VERSION by extra { "0.160.5+26.3" }
 
 // https://semver.org/
-val MOD_VERSION by extra { "0.26.0" }
+val MOD_VERSION by extra { "0.26.1" }
 
 // This value can be set to null to disable Parchment.
 val PARCHMENT_VERSION by extra { null }

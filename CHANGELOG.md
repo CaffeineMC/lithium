@@ -4,12 +4,10 @@ _LithiumVersion_ is automatically replaced with the lithium version, e.g. 0.14.5
 Everything above the line is ignored and not included in the changelog. Everything below will be in the
 changelog on GitHub, Modrinth and CurseForge.
 ----------
-Lithium _LithiumVersion_ is the first release for Minecraft _MCVersion_.
+Lithium _LithiumVersion_ for Minecraft _MCVersion_ fixes two critical issues.
 
 Make sure to take a backup of your world before using the mod and please report any bugs and mod compatibility issues at the [issue tracker](https://github.com/CaffeineMC/lithium-fabric/issues). You can check the [description of each optimization](https://github.com/CaffeineMC/lithium/blob/_ReleaseTag_/lithium-mixin-config.md) and how to disable it when encountering a problem.
 
 ## Changes
-- Separate build process for NeoForge and Fabric
-- Fix crash in fluid flow direction optimization
-- Reenable ai.pathing optimization by default
-- Fix equipment change tracking optimization injection point (Thanks to HaHaWTH)
+- Fix F3+1 profiler crash
+- Disable optimization that causes chunk corruption
