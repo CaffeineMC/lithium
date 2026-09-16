@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -61,10 +60,10 @@ public class ProfilerMixin {
     }
 
     @Inject(
-            method = "use",
+            method = "startUsing",
             at = @At("RETURN")
     )
-    private static void placeProfilerInStaticFields(ProfilerFiller filler, CallbackInfoReturnable<Profiler.Scope> cir) {
+    private static void placeProfilerInStaticFields(ProfilerFiller filler, CallbackInfo ci) {
         Thread thread = Thread.currentThread();
         ProfilerFiller activeProfiler = ACTIVE.get();
         if (THREAD_1.compareAndSet(null, thread)) {
