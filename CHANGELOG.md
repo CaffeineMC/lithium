@@ -10,3 +10,4 @@ Make sure to take a backup of your world before using the mod and please report 
 
 ## Changes
 - Re-enable previously disabled optimization after fixing initialization crash
+- Fix api jar build

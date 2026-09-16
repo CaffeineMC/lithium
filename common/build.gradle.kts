@@ -74,6 +74,10 @@ tasks.withType<JavaCompile>().configureEach {
     enabled = false
 }
 
+tasks.named<JavaCompile>("compileApiJava") {
+    enabled = true
+}
+
 
 tasks.named<Copy>("processGametestResources") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
