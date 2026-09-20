@@ -71,6 +71,7 @@ repositories {
 }
 
 tasks.processResources {
+    from(project(":common").sourceSets.getByName("main").resources.srcDirs)
     filesMatching("META-INF/neoforge.mods.toml") {
         expand(mapOf(
                 "version" to MOD_VERSION,
