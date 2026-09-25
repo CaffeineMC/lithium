@@ -28,9 +28,9 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehavior {
             at = @At("HEAD")
     )
     private void avoidNotifyingMovementListeners(ServerLevel serverLevel, CallbackInfo ci) {
-        if (this instanceof Container) {
+        if (this.minecart instanceof Container) {
             this.beforeMoveOnRailPos = this.position();
-            EntityInLevelCallback changeListener = ((EntityAccessor) this).getChangeListener();
+            EntityInLevelCallback changeListener = ((EntityAccessor) this.minecart).getChangeListener();
             if (changeListener instanceof ToggleableMovementTracker toggleableMovementTracker) {
                 this.beforeMoveOnRailNotificationMask = toggleableMovementTracker.lithium$setNotificationMask(0);
             }
@@ -42,8 +42,8 @@ public abstract class OldMinecartBehaviorMixin extends MinecartBehavior {
             at = @At("RETURN")
     )
     private void notifyMovementListeners(ServerLevel serverLevel, CallbackInfo ci) {
-        if (this instanceof Container) {
-            EntityInLevelCallback changeListener = ((EntityAccessor) this).getChangeListener();
+        if (this.minecart instanceof Container) {
+            EntityInLevelCallback changeListener = ((EntityAccessor) this.minecart).getChangeListener();
             if (changeListener instanceof ToggleableMovementTracker toggleableMovementTracker) {
                 this.beforeMoveOnRailNotificationMask = toggleableMovementTracker.lithium$setNotificationMask(this.beforeMoveOnRailNotificationMask);
 
