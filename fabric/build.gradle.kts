@@ -199,7 +199,6 @@ loom {
 
 tasks {
     processResources {
-        from(project(":common").sourceSets.getByName("main").resources.srcDirs)
         inputs.property("version", project.version)
 
         filesMatching("fabric.mod.json") {
