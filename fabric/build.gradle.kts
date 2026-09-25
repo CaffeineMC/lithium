@@ -115,6 +115,14 @@ sourceSets {
     val main by getting
     val parent = project(":common").sourceSets.getByName("gametest")
 
+    main {
+        java.srcDirs(
+                project(":common").sourceSets.getByName("api").java.srcDirs,
+                project(":common").sourceSets.getByName("main").java.srcDirs
+        )
+        resources.srcDirs(project(":common").sourceSets.getByName("main").resources.srcDirs)
+    }
+
     val gametest by getting {
         java.srcDir("src/gametest/java")
         resources.srcDir("src/gametest/resources")
@@ -125,21 +133,13 @@ sourceSets {
         runtimeClasspath += main.output
         compileClasspath += parent.compileClasspath
         runtimeClasspath += parent.runtimeClasspath
+        java.srcDirs(parent.java.srcDirs)
     }
 
     test {
         java.srcDir("src/test/java")
         resources.srcDir("src/test/resources")
     }
-}
-
-tasks.named<JavaCompile>("compileJava") {
-    source(project(":common").sourceSets.getByName("api").java.srcDirs)
-    source(project(":common").sourceSets.getByName("main").java.srcDirs)
-}
-
-tasks.named<JavaCompile>("compileGametestJava") {
-    source(project(":common").sourceSets.getByName("gametest").java.srcDirs)
 }
 
 tasks.named<Copy>("processGametestResources") {
