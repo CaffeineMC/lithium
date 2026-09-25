@@ -35,7 +35,7 @@ public abstract class ChunkHolderMixin extends GenerationChunkHolder {
         boolean wasLoaded = prevStatus.isOrAfter(FullChunkStatus.FULL);
         if (!loaded && wasLoaded) {
             ChunkStatusTracker.onChunkInaccessible(serverLevel, this.pos);
-        } else if (!wasLoaded) {
+        } else if (loaded && !wasLoaded) {
             //The chunk is loaded. Either the future still has work (-> the other mixin will handle it), or
             // the chunk is available immediately (-> we have to handle it here). This commonly happens at the edge of
             // the render distance when the player turns around and reloads a chunk that was only barely unloaded.
