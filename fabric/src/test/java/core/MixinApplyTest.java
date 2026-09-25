@@ -1,6 +1,6 @@
 package core;
 
-import net.caffeinemc.mods.lithium.mixin.LithiumMixinPlugin;
+import net.caffeinemc.mods.lithium.common.LithiumMixinPlugin;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import util.TestBootstrap;

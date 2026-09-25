@@ -5,7 +5,7 @@
   "mixinextras" : {
     "minVersion" : "0.5.5"
   },
-  "plugin" : "net.caffeinemc.mods.lithium.mixin.LithiumMixinPlugin",
+  "plugin" : "net.caffeinemc.mods.lithium.common.LithiumMixinPlugin",
   "injectors" : {
     "defaultRequire" : 1
   },

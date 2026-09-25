@@ -1,12 +1,12 @@
 package net.caffeinemc.mods.lithium.mixin.world.chunk_ticking.random_block_ticking;
 
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import net.caffeinemc.mods.lithium.common.LithiumMixinPlugin;
 import net.caffeinemc.mods.lithium.common.block.BlockCountingSection;
 import net.caffeinemc.mods.lithium.common.block.BlockStateFlagHolder;
 import net.caffeinemc.mods.lithium.common.block.BlockStateFlags;
 import net.caffeinemc.mods.lithium.common.world.section.LithiumSectionData;
 import net.caffeinemc.mods.lithium.common.world.section.RandomTickingSectionDataHelper;
-import net.caffeinemc.mods.lithium.mixin.LithiumMixinPlugin;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.Palette;

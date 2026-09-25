@@ -1,7 +1,7 @@
 package net.caffeinemc.mods.lithium.mixin.client_tick.entity.unused_brain;
 
+import net.caffeinemc.mods.lithium.common.LithiumMixinPlugin;
 import net.caffeinemc.mods.lithium.common.client.SharedFields;
-import net.caffeinemc.mods.lithium.mixin.LithiumMixinPlugin;
 import net.minecraft.world.entity.ai.memory.MemorySlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

@@ -1,4 +1,4 @@
-package net.caffeinemc.mods.lithium.mixin;
+package net.caffeinemc.mods.lithium.common;
 
 import net.caffeinemc.mods.lithium.common.config.LithiumConfig;
 import net.caffeinemc.mods.lithium.common.config.Option;
