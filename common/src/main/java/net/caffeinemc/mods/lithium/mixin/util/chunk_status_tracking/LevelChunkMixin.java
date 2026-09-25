@@ -27,12 +27,20 @@ public abstract class LevelChunkMixin extends ChunkAccess {
     @Shadow
     public abstract Level getLevel();
 
+    @Shadow
+    public abstract FullChunkStatus getFullStatus();
+
     @Inject(
             method = "setFullStatus(Ljava/util/function/Supplier;)V", at = @At("RETURN")
     )
     private void onChunkFull(Supplier<FullChunkStatus> supplier, CallbackInfo ci) {
         if (supplier != null && this.getLevel() instanceof ServerLevel serverLevel) {
-            ChunkStatusTracker.onChunkAccessible(serverLevel, (LevelChunk) (Object) this);
+            boolean isAccessible = this.getFullStatus().isOrAfter(FullChunkStatus.FULL);
+            if (isAccessible) {
+                ChunkStatusTracker.onChunkAccessible(serverLevel, (LevelChunk) (Object) this);
+            } else {
+                ChunkStatusTracker.onChunkInaccessible(serverLevel, this.getPos());
+            }
         }
     }
 }
