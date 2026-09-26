@@ -12,3 +12,5 @@ Make sure to take a backup of your world before using the mod and please report 
 - Re-enable previously disabled optimization after fixing initialization crash
 - Fix api jar build
 - Fix mod compatibility issue with Streams Reflowing
+- Fix movement notification of stationary minecarts (Thanks to HaHaWTH)
+- Fix memory leak of vibration system optimization
