@@ -367,7 +367,9 @@ Access entities faster when accessing a relatively small number of entity sectio
   
 ### `mixin.entity.framed_maps`
 (default: `true`)  
-Avoid map items in item frames performing inventory scanning quadratic in the number of online players. Instead, scan each player inventory once per map item in item frame only.
+Avoid map items in item frames performing inventory scanning quadratic in the number of online players. Avoid continuously sending map updates to players that do not have a map when a map is both in an item frame in the same dimension and any player's inventory  
+Non-vanilla behavior:
+  In vanilla the first player in a framed map's dimension can reliably see themselves on the framed map while wearing a carved pumpkin and holding the map item in their inventory when they have a client mod that displays player decorations on framed maps. All other players with the same setup may see their player decoration on the map flicker. With this optimization, the carved pumpkin effect should apply to all players equally. This has not been confirmed in testing.
   
 ### `mixin.entity.inactive_navigations`
 (default: `true`)  

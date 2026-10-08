@@ -1,18 +1,18 @@
 {
-  "package": "net.caffeinemc.mods.lithium.mixin",
-  "required": true,
-  "compatibilityLevel": "JAVA_25",
-  "mixinextras": {
-    "minVersion": "0.5.4"
+  "package" : "net.caffeinemc.mods.lithium.mixin",
+  "required" : true,
+  "compatibilityLevel" : "JAVA_25",
+  "mixinextras" : {
+    "minVersion" : "0.5.4"
   },
-  "plugin": "net.caffeinemc.mods.lithium.common.LithiumMixinPlugin",
-  "injectors": {
-    "defaultRequire": 1
+  "plugin" : "net.caffeinemc.mods.lithium.common.LithiumMixinPlugin",
+  "injectors" : {
+    "defaultRequire" : 1
   },
-  "overwrites": {
-    "conformVisibility": true
+  "overwrites" : {
+    "conformVisibility" : true
   },
-  "mixins": [
+  "mixins" : [
     "ai.non_poi_block_search.HoglinSpecificSensorMixin",
     "ai.non_poi_block_search.MoveToBlockGoalMixin",
     "ai.non_poi_block_search.PiglinSpecificSensorMixin",
@@ -139,6 +139,7 @@
     "entity.fast_elytra_check.LivingEntityMixin",
     "entity.fast_powder_snow_check.LivingEntityMixin",
     "entity.fast_retrieval.EntitySectionStorageMixin",
+    "entity.framed_maps.MapItemSavedData$HoldingPlayerMixin",
     "entity.framed_maps.MapItemSavedDataMixin",
     "entity.inactive_navigations.HappyGhastMixin",
     "entity.inactive_navigations.LivingEntityMixin",
@@ -286,7 +287,7 @@
     "world.temperature_cache.BiomeMixin",
     "world.tick_scheduler.LevelChunkTicksMixin"
   ],
-  "client": [
+  "client" : [
     "chunk.entity_class_groups.ClientLevelMixin",
     "client_tick.entity.base_tick.unused_ambient_sound.MobMixin",
     "client_tick.entity.base_tick.unused_water_supply.AgeableWaterCreatureMixin",
