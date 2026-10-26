@@ -32,6 +32,9 @@ public abstract class EntityMixin {
     @Shadow
     public abstract AABB getBoundingBox();
 
+    @Shadow
+    public abstract float maxUpStep();
+
     @Redirect(
             method = "collide(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;",
             at = @At(
@@ -114,6 +117,8 @@ public abstract class EntityMixin {
             movementSpace = entityBoundingBox.expandTowards(movement);
         }
 
+        AABB movementSpaceWithMaxUpStep = entity == null ? movementSpace : movementSpace.expandTowards(0.0D, entity.maxUpStep(), 0.0D);
+
         boolean shouldAddEntities = requireAddEntities != null && requireAddEntities.get();
         boolean shouldAddWorldBorder = true;
         // For 1-e7 margin behavior correctness, the last block collision must be last of all collisions
@@ -126,7 +131,7 @@ public abstract class EntityMixin {
         if (movementY != 0.0) {
             movementY = Shapes.collide(Direction.Axis.Y, entityBoundingBox, blockCollisions, movementY);
             if (movementY != 0.0) {
-                shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpace);
+                shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpaceWithMaxUpStep);
                 //noinspection ConstantValue
                 shouldAddWorldBorder = LithiumEntityCollisions.addWorldBorderCollisionIfRequired(shouldAddWorldBorder, entity, worldBorderAndLastBlockCollision, movementSpace);
                 //noinspection ConstantValue
@@ -148,7 +153,7 @@ public abstract class EntityMixin {
             movementZ = Shapes.collide(Direction.Axis.Z, entityBoundingBox, blockCollisions, movementZ);
             if (movementZ != 0.0) {
                 //noinspection DuplicatedCode
-                shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpace);
+                shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpaceWithMaxUpStep);
                 shouldAddWorldBorder = LithiumEntityCollisions.addWorldBorderCollisionIfRequired(shouldAddWorldBorder, entity, worldBorderAndLastBlockCollision, movementSpace);
                 shouldAddLastBlock = LithiumEntityCollisions.addLastBlockCollisionIfRequired(shouldAddLastBlock, blockCollisionSweeper, worldBorderAndLastBlockCollision);
                 if (!entityCollisions.isEmpty()) {
@@ -166,7 +171,7 @@ public abstract class EntityMixin {
         if (movementX != 0.0) {
             movementX = Shapes.collide(Direction.Axis.X, entityBoundingBox, blockCollisions, movementX);
             if (movementX != 0.0) {
-                shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpace);
+                shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpaceWithMaxUpStep);
                 shouldAddWorldBorder = LithiumEntityCollisions.addWorldBorderCollisionIfRequired(shouldAddWorldBorder, entity, worldBorderAndLastBlockCollision, movementSpace);
                 shouldAddLastBlock = LithiumEntityCollisions.addLastBlockCollisionIfRequired(shouldAddLastBlock, blockCollisionSweeper, worldBorderAndLastBlockCollision);
                 if (!entityCollisions.isEmpty()) {
@@ -185,7 +190,7 @@ public abstract class EntityMixin {
             movementZ = Shapes.collide(Direction.Axis.Z, entityBoundingBox, blockCollisions, movementZ);
             if (movementZ != 0.0) {
                 //noinspection DuplicatedCode
-                shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpace);
+                shouldAddEntities = LithiumEntityCollisions.addEntityCollisionsIfRequired(shouldAddEntities, entity, world, entityCollisions, movementSpaceWithMaxUpStep);
                 //noinspection UnusedAssignment
                 shouldAddWorldBorder = LithiumEntityCollisions.addWorldBorderCollisionIfRequired(shouldAddWorldBorder, entity, worldBorderAndLastBlockCollision, movementSpace);
                 //noinspection UnusedAssignment
