@@ -1,5 +1,6 @@
 package net.caffeinemc.mods.lithium.mixin.entity.collisions.movement;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import net.caffeinemc.mods.lithium.common.entity.LithiumEntityCollisions;
@@ -66,11 +67,11 @@ public abstract class EntityMixin {
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/Entity;collectCollidersIgnoringWorldBorder(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/level/Level;Ljava/util/List;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;")
     )
-    private List<VoxelShape> collectEntities(List<VoxelShape> entityCollisions, @Share("requireAddEntities") LocalBooleanRef requireAddEntities) {
+    private List<VoxelShape> collectEntities(List<VoxelShape> entityCollisions, @Local(argsOnly = true, name = "movement") Vec3 movement, @Share("requireAddEntities") LocalBooleanRef requireAddEntities) {
         if (requireAddEntities.get()) {
             requireAddEntities.set(false);
             ArrayList<VoxelShape> collisions = entityCollisions instanceof ArrayList<VoxelShape> ? (ArrayList<VoxelShape>) entityCollisions : new ArrayList<>(entityCollisions);
-            LithiumEntityCollisions.appendEntityCollisions(collisions, this.level(), (Entity) (Object) this, this.getBoundingBox());
+            LithiumEntityCollisions.appendEntityCollisions(collisions, this.level(), (Entity) (Object) this, this.getBoundingBox().expandTowards(movement).expandTowards(0.0, this.maxUpStep(), 0.0));
             return collisions;
         }
         return entityCollisions;
@@ -111,13 +112,16 @@ public abstract class EntityMixin {
         }
 
         AABB movementSpace;
+        AABB movementSpaceWithMaxUpStep;
         if (isSingleAxisMovement) {
             movementSpace = LithiumEntityCollisions.getSmallerBoxForSingleAxisMovement(movement, entityBoundingBox, movementY, movementX, movementZ);
+            movementSpaceWithMaxUpStep = entity == null || entity.maxUpStep() == 0F ? movementSpace : entityBoundingBox.expandTowards(movement).expandTowards(0.0D, entity.maxUpStep(), 0.0D);
+
         } else {
             movementSpace = entityBoundingBox.expandTowards(movement);
+            movementSpaceWithMaxUpStep = entity == null || entity.maxUpStep() == 0F ? movementSpace : movementSpace.expandTowards(0.0D, entity.maxUpStep(), 0.0D);
         }
 
-        AABB movementSpaceWithMaxUpStep = entity == null ? movementSpace : movementSpace.expandTowards(0.0D, entity.maxUpStep(), 0.0D);
 
         boolean shouldAddEntities = requireAddEntities != null && requireAddEntities.get();
         boolean shouldAddWorldBorder = true;
