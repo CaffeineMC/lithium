@@ -25,7 +25,7 @@ public class MapItemSavedData$HoldingPlayerMixin implements MapObservingPlayer {
 
     @Override
     public boolean lithium$requiresMapUpdates() {
-        return !this.player.isRemoved() && (this.hasMapInInventory || lithium$canSeeMapInItemFrame());
+        return !this.player.isRemoved() && (this.hasMapInInventory || lithium$canMaybeSeeMapInItemFrame());
     }
 
     @Override
@@ -34,9 +34,10 @@ public class MapItemSavedData$HoldingPlayerMixin implements MapObservingPlayer {
     }
 
     @Override
-    public boolean lithium$canSeeMapInItemFrame() {
+    public boolean lithium$canMaybeSeeMapInItemFrame() {
         if (this.player.level() instanceof ServerLevel serverLevel) {
-            return this.lastSeenMapInItemFrame > serverLevel.getServer().getTickCount() - 20;
+            int ticksNotSeen = serverLevel.getServer().getTickCount() - this.lastSeenMapInItemFrame;
+            return ticksNotSeen >= 0 && ticksNotSeen < 20;
         }
         return false;
     }

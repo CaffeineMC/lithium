@@ -54,7 +54,10 @@ public abstract class MapItemSavedDataMixin extends SavedData {
         return decoration != null;
     }
 
-    //Start of: Avoid removing player holders if they would be recreated immediately, causing excess packets
+    //Start of: Avoid removing player holders if they would be recreated immediately, causing excess packets.
+    // Not removing player holder -> send update packets when map content changes
+    // Removing player holder -> holder recreated -> send the entire map data
+
     @WrapOperation(
             method = "tickCarriedBy",
             at = @At(value = "INVOKE", target = "Ljava/util/Map;remove(Ljava/lang/Object;)Ljava/lang/Object;")
@@ -107,20 +110,20 @@ public abstract class MapItemSavedDataMixin extends SavedData {
     }
     //End of: Keep custom fields up to date
 
+    //Start of: Replace quadratic player scanning with a single player scan
     @ModifyReceiver(
             method = "tickCarriedBy(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/decoration/ItemFrame;)V",
             at = @At(value = "INVOKE", target = "Ljava/util/List;size()I")
     )
-    private List<MapItemSavedData.HoldingPlayer> avoidQuadraticPlayerUpdating(List<MapItemSavedData.HoldingPlayer> instance, @Local(argsOnly = true, name = "placedInFrame") ItemFrame placedInFrame, @Share("IsUpdatingAllPlayers") LocalBooleanRef isUpdatingAllPlayers) {
-        if (placedInFrame != null && !isUpdatingAllPlayers.get() && placedInFrame.level() instanceof ServerLevel serverLevel) {
+    private List<MapItemSavedData.HoldingPlayer> avoidQuadraticPlayerUpdating(List<MapItemSavedData.HoldingPlayer> instance, @Local(argsOnly = true, name = "placedInFrame") ItemFrame placedInFrame, @Share("itemFrameIsUpdatingAllPlayers") LocalBooleanRef itemFrameIsUpdatingAllPlayers) {
+        if (placedInFrame != null && !itemFrameIsUpdatingAllPlayers.get() && placedInFrame.level() instanceof ServerLevel serverLevel) {
             //Item frames do not need to update all players several times, once per tick is enough.
             if (this.lastUpdatedAllPlayers == (serverLevel.getServer().getTickCount())) {
                 //noinspection unchecked
                 return Collections.EMPTY_LIST; //Skip the entire loop when already updated all players in the previous call or even from a different item frame entity
             }
             this.lastUpdatedAllPlayers = serverLevel.getServer().getTickCount();
-            isUpdatingAllPlayers.set(true);
-            return instance;
+            itemFrameIsUpdatingAllPlayers.set(true);
         }
         return instance;
     }
@@ -129,10 +132,10 @@ public abstract class MapItemSavedDataMixin extends SavedData {
             method = "tickCarriedBy(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/decoration/ItemFrame;)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;equals(Ljava/lang/Object;)Z")
     )
-    private Object getPlayerOrNullIfUpdatingMultiplePlayers(Object player, @Share("IsUpdatingAllPlayers") LocalBooleanRef isUpdatingAllPlayers) {
-        //In case the above mixin set isUpdatingAllPlayers, we do not want to exclude the currently ticking player from decoration removal when they are invisible.
+    private Object getPlayerOrNullIfUpdatingMultiplePlayers(Object player, @Share("itemFrameIsUpdatingAllPlayers") LocalBooleanRef itemFrameIsUpdatingAllPlayers) {
+        //In case the above mixin set itemFrameIsUpdatingAllPlayers, we do not want to exclude the currently ticking player from decoration removal when they are invisible.
         // Unless they are the only player
-        if (isUpdatingAllPlayers.get() && this.carriedBy.size() > 1) {
+        if (itemFrameIsUpdatingAllPlayers.get() && this.carriedBy.size() > 1) {
             return null;
             //Equality will return false -> all player decorations with invisibility will be removed.
 

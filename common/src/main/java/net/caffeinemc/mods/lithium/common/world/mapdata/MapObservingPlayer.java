@@ -5,7 +5,7 @@ public interface MapObservingPlayer {
 
     void lithium$setHasMapInInventory(boolean hasMapInInventory);
 
-    boolean lithium$canSeeMapInItemFrame();
+    boolean lithium$canMaybeSeeMapInItemFrame();
 
     void lithium$setCanSeeMapInItemFrame();
 }
