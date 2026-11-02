@@ -45,16 +45,18 @@ public abstract class ServerExplosionMixin implements LithiumExplosion {
 
         //To work around the case of exploding end portals placed by an explosion destroying the end crystal that is
         // currently respawning the ender dragon, this optimization is only applies when far enough away
-        if (!this.fire && this.level.dimension() == Level.END && this.level.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) {
-            float overestimatedExplosionRange = (8 + (int) (6f * this.radius));
-            int endPortalX = 0;
-            int endPortalZ = 0;
-            if (overestimatedExplosionRange > Math.abs(this.center.x - endPortalX) && overestimatedExplosionRange > Math.abs(this.center.z - endPortalZ)) {
-                //Could check if the dragon fight is in respawn phase here as well, but that requires even more mixins
-                return;
+        boolean skipAir = !this.fire;
+        if (skipAir) {
+            if (this.level.dimension() == Level.END && this.level.dimensionTypeRegistration().is(BuiltinDimensionTypes.END)) {
+                float overestimatedExplosionRange = (8 + (int) (6f * this.radius));
+                int endPortalX = 0;
+                int endPortalZ = 0;
+                if (overestimatedExplosionRange > Math.abs(this.center.x - endPortalX) && overestimatedExplosionRange > Math.abs(this.center.z - endPortalZ)) {
+                    //Could check if the dragon fight is in respawn phase here as well, but that requires even more mixins
+                    return;
+                }
             }
+            this.lithium$setSkipAir();
         }
-        this.lithium$setSkipAir();
     }
-
 }
