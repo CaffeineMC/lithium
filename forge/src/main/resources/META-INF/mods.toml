@@ -1,0 +1,29 @@
+modLoader = "javafml"
+loaderVersion = "[65,)"
+license = "LGPL-3.0-only"
+
+[[mods]]
+modId = "lithium"
+version = "${version}"
+displayName = "Lithium"
+logoFile = "assets/lithium/lithium-icon.png"
+authors = "2No2Name, JellySquid"
+description = '''
+Lithium is a free and open-source optimization mod for Minecraft which makes a wide range of performance improvements to the game.
+'''
+
+[modproperties.lithium]
+
+[[dependencies.lithium]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "${mc_version_dependency}"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.lithium]]
+    modId = "forge"
+    mandatory = true
+    versionRange = "[65,)"
+    ordering = "NONE"
+    side = "BOTH"

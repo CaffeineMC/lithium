@@ -1,0 +1,10 @@
+{
+  "pack": {
+    "description": "lithium resources",
+    "max_format": 107,
+    "min_format": [
+      88,
+      0
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.caffeinemc.mods.lithium.forge.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

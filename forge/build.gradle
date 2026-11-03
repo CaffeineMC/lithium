@@ -1,0 +1,173 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[7.0.17,8)'
+    id 'net.caffeinemc.mixin-config-plugin' version '1.0-SNAPSHOT'
+}
+
+evaluationDependsOn(':common')
+
+def commonProject = project(':common')
+def mcVersion = rootProject.ext.MINECRAFT_COMPILE_VERSION
+// Forge uses the same Maven version ranges as NeoForge.
+def mcVersionRange = rootProject.ext.MC_SUPPORTED_RANGE_NEOFORGE
+
+base {
+    archivesName = 'lithium-forge'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+// Loom applies common's lithium.accesswidener for Fabric and NeoForge. ForgeGradle needs an access
+// transformer instead, so it is generated from the access widener, which stays the only list to
+// maintain.
+def accessTransformerDir = layout.buildDirectory.dir('generated/accesstransformer').get().asFile
+def accessTransformer = new File(accessTransformerDir, 'META-INF/accesstransformer.cfg')
+accessTransformer.parentFile.mkdirs()
+accessTransformer.text = commonProject.file('src/main/resources/lithium.accesswidener').readLines()
+        .collect { it.trim() }
+        .findAll { it && !it.startsWith('#') && !it.startsWith('accessWidener') }
+        .collect { line ->
+            def (directive, kind, owner, name, descriptor) = line.split(/\s+/) as List
+            def access = directive == 'accessible' ? 'public' : 'public-f'
+            owner = owner.replace('/', '.')
+            switch (kind) {
+                case 'class': return "${access} ${owner}"
+                case 'method': return "${access} ${owner} ${name}${descriptor}"
+                case 'field': return "${access} ${owner} ${name}"
+                default: throw new GradleException("Unsupported access widener entry: ${line}")
+            }
+        }
+        .join('\n') + '\n'
+
+minecraft {
+    accessTransformers.from accessTransformer
+
+    runs {
+        register('client') {
+            workingDir = layout.projectDirectory.dir('run')
+            systemProperty 'eventbus.api.strictRuntimeChecks', 'true'
+        }
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${mcVersion}-65.1.0")
+
+    // Forge ships MixinExtras at runtime, but ForgeGradle doesn't put it on the compile classpath.
+    compileOnly 'io.github.llamalad7:mixinextras-common:0.5.4'
+    annotationProcessor 'io.github.llamalad7:mixinextras-common:0.5.4'
+
+    // common's package-info files are annotated with @MixinConfigOption / @MixinConfigDependency
+    // from components/mixin-config-plugin. Since this module compiles common's sources itself, it
+    // needs those annotations on its compile classpath.
+    compileOnly 'net.caffeinemc:mixin-config-plugin:1.0-SNAPSHOT'
+}
+
+// Like the neoforge module, compile :common's sources straight into this jar.
+tasks.named('compileJava', JavaCompile) {
+    source commonProject.sourceSets.main.allSource
+    source commonProject.sourceSets.api.allSource
+}
+
+tasks.named('processResources', ProcessResources) {
+    from commonProject.sourceSets.main.resources
+    from commonProject.sourceSets.api.resources
+    from accessTransformerDir
+
+    def properties = ['version': project.version, 'mc_version_dependency': mcVersionRange]
+    inputs.properties properties
+    // A filter closure is not a task input, so without this the task could stay UP-TO-DATE and ship
+    // the unpatched config.
+    inputs.property 'mixinCompatibilityLevel', 'JAVA_21'
+
+    filesMatching('META-INF/mods.toml') {
+        expand properties
+    }
+
+    // Forge ships upstream SpongePowered Mixin, whose CompatibilityLevel enum stops at JAVA_21;
+    // declaring JAVA_25 aborts Mixin startup outright. This only limits what bytecode is allowed
+    // inside mixin classes, not what is produced.
+    filesMatching('lithium.mixins.json') {
+        filter { line -> line.replace('"JAVA_25"', '"JAVA_21"') }
+    }
+
+    exclude 'META-INF/neoforge.mods.toml'
+    exclude 'fabric.mod.json'
+    exclude '*.accesswidener'
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from rootProject.file('LICENSE.md')
+
+    // Forge reads mixin configs from this manifest attribute.
+    manifest.attributes 'MixinConfigs': 'lithium.mixins.json,lithium-forge.mixins.json'
+
+    // Next to the other jars, like the neoforge module.
+    destinationDirectory = rootProject.layout.buildDirectory.dir('libs')
+}
+
+// LithiumConfig reads two generated properties files at startup and throws if they are missing,
+// which silently disables every mixin. They are produced from the @MixinConfigOption /
+// @MixinConfigDependency annotations by this task, so it has to run even though the checked-in
+// lithium.mixins.json is already complete.
+sourceSets {
+    main {
+        resources {
+            srcDir layout.buildDirectory.dir('forge-mixin-config-output')
+        }
+    }
+}
+
+tasks.named('forgeCreateMixinConfig', net.caffeinemc.gradle.CreateMixinConfigTask) {
+    inputFiles.set([
+            tasks.named('compileJava', JavaCompile).get().destinationDirectory.get(),
+    ])
+    includeFiles.set(file("${commonProject.projectDir}/src/main/java/net/caffeinemc/mods/lithium"))
+    outputDirectory.set(layout.buildDirectory.dir('forge-mixin-config-output'))
+    outputAssetsPath = 'assets/lithium'
+    outputFilenameForSummaryDocument = 'lithium-forge-mixin-config.md'
+    mixinParentPackages = ['net.caffeinemc.mods.lithium', 'net.caffeinemc.mods.lithium.forge']
+    modShortName = 'Lithium'
+
+    dependsOn('compileJava')
+}
+
+tasks.named('processResources') {
+    dependsOn('forgeCreateMixinConfig')
+}
+
+// Three of Lithium's optimizations @Inject into a constructor at an INVOKE point. NeoForge's Mixin
+// fork allows that; the upstream Mixin 0.8.7 that Forge ships refuses it with "Found @Inject
+// targetting a constructor" and aborts the entire config, which would disable every optimization.
+// Turning just these three off keeps all the others working.
+def disabledOnForge = [
+        'mixin.collections.block_entity_tickers',
+        'mixin.shapes.lazy_shape_context',
+        'mixin.world.game_events.dispatch',
+]
+
+tasks.named('processResources', ProcessResources) {
+    inputs.property 'disabledOnForge', disabledOnForge
+
+    filesMatching('assets/lithium/lithium-mixin-config-default.properties') {
+        filter { line ->
+            def key = line.split('=')[0].trim()
+            disabledOnForge.contains(key) ? "${key}=false" : line
+        }
+    }
+}
