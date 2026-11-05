@@ -82,7 +82,7 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         if (!this.isSorted) {
             return this.unsortedPeekResult;
         } else if (this.lastIndexExclusive > this.firstIndex) {
-            return this.getTickAtIndex(this.firstIndex);
+            return this.getTickAtIndex(0);
         }
         return null;
     }
@@ -159,14 +159,14 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         if (!this.isSorted) {
             throw new IllegalStateException("Unexpected access on unsorted queue!");
         }
-        return this.arr[index];
+        return this.arr[this.firstIndex + index];
     }
 
     public void setTickAtIndex(int index, ScheduledTick<T> tick) {
         if (!this.isSorted) {
             throw new IllegalStateException("Unexpected access on unsorted queue!");
         }
-        this.arr[index] = tick;
+        this.arr[this.firstIndex + index] = tick;
     }
 
     @SuppressWarnings("unchecked")
