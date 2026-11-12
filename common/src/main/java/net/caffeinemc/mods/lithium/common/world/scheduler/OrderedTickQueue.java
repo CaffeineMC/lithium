@@ -49,7 +49,7 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         if (this.isEmpty()) {
             return Collections.emptyIterator();
         }
-        this.sort();
+        this.sort(); //Iterator doesn't require sorting, but we are nice
         return new Iterator<>() {
             int nextIndex = OrderedTickQueue.this.firstIndex;
 
@@ -88,7 +88,7 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         if (!this.isSorted) {
             return this.unsortedPeekResult;
         } else if (this.lastIndexExclusive > this.firstIndex) {
-            return this.getTickAtIndex(this.firstIndex);
+            return this.arr[this.firstIndex];
         }
         return null;
     }
@@ -163,13 +163,6 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         this.unsortedPeekResult = null;
     }
 
-    private ScheduledTick<T> getTickAtIndex(int index) {
-        if (!this.isSorted) {
-            throw new IllegalStateException("Unexpected access on unsorted queue!");
-        }
-        return this.arr[index];
-    }
-
     @Override
     public boolean removeIf(@NonNull Predicate<? super ScheduledTick<T>> filter) {
         Objects.requireNonNull(filter);
@@ -190,7 +183,7 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
                 }
                 src++;
             }
-        } catch (Exception e) {
+        } catch (Exception e) { //Collection stays in inconsistent state after Error or other Throwable. Only Exceptions are caught and handled.
             this.fixCollectionOnThrowDuringRemoveIf(src, dst, minTick);
             throw e;
         }
@@ -223,6 +216,7 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         System.arraycopy(this.arr, remainingStart, this.arr, dst, remainingCount);
         this.firstIndex = 0;
         this.lastIndexExclusive = dst + remainingCount;
+        Arrays.fill(this.arr, this.lastIndexExclusive, this.arr.length, null);
 
         //Finish searching for the minimum tick avoid an inconsistent peek result
         if (!this.isSorted) {
@@ -246,6 +240,19 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         if (this.size() < 0) {
             throw new IllegalStateException("Queue size is" + this.size() + " but should be >= 0!");
         }
+
+        //noinspection ConstantValue
+        if ((this.size() == 0) != this.isEmpty()) {
+            throw new IllegalStateException("Queue isEmpty() is " + this.isEmpty() + " but size is " + this.size());
+        }
+        //noinspection ConstantValue
+        if (this.isEmpty() && (this.peek() != null)) {
+            throw new IllegalStateException("Queue is empty but peek() returned " + this.peek());
+        }
+        if (!this.isEmpty() && this.peek() == null) {
+            throw new IllegalStateException("Queue is not empty but peek() returned null!");
+        }
+
         for (int i = 0; i < this.firstIndex; i++) {
             if (this.arr[i] != null) {
                 throw new IllegalStateException("Array elements before firstIndex should be null, but found non-null element " + this.arr[i] + " at index " + i);
