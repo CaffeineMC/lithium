@@ -1,8 +1,11 @@
 package net.caffeinemc.mods.lithium.common.world.scheduler;
 
 import it.unimi.dsi.fastutil.HashCommon;
-import java.util.*;
 import net.minecraft.world.ticks.ScheduledTick;
+import org.jspecify.annotations.NonNull;
+
+import java.util.*;
+import java.util.function.Predicate;
 
 public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
     private static final int INITIAL_CAPACITY = 16;
@@ -13,17 +16,14 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
     private int lastIndexExclusive;
     private int firstIndex;
 
-    private long currentMaxSubTickOrder = Long.MIN_VALUE;
+    private long maxSeenSubtickOrder;
     private boolean isSorted;
     private ScheduledTick<T> unsortedPeekResult;
 
     @SuppressWarnings("unchecked")
     public OrderedTickQueue(int capacity) {
         this.arr = (ScheduledTick<T>[]) new ScheduledTick[capacity];
-        this.lastIndexExclusive = 0;
-        this.isSorted = true;
-        this.unsortedPeekResult = null;
-        this.firstIndex = 0;
+        this.initEmpty();
     }
 
     public OrderedTickQueue() {
@@ -33,15 +33,19 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
     @Override
     public void clear() {
         Arrays.fill(this.arr, null);
+        this.initEmpty();
+    }
+
+    private void initEmpty() {
         this.lastIndexExclusive = 0;
         this.firstIndex = 0;
-        this.currentMaxSubTickOrder = Long.MIN_VALUE;
+        this.maxSeenSubtickOrder = Long.MIN_VALUE;
         this.isSorted = true;
         this.unsortedPeekResult = null;
     }
 
     @Override
-    public Iterator<ScheduledTick<T>> iterator() {
+    public @NonNull Iterator<ScheduledTick<T>> iterator() {
         if (this.isEmpty()) {
             return Collections.emptyIterator();
         }
@@ -56,6 +60,9 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
 
             @Override
             public ScheduledTick<T> next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
                 return OrderedTickQueue.this.arr[this.nextIndex++];
             }
         };
@@ -69,10 +76,9 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         if (!this.isSorted) {
             this.sort();
         }
-        ScheduledTick<T> nextTick;
         int polledIndex = this.firstIndex++;
         ScheduledTick<T>[] ticks = this.arr;
-        nextTick = ticks[polledIndex];
+        ScheduledTick<T> nextTick = ticks[polledIndex];
         ticks[polledIndex] = null;
         return nextTick;
     }
@@ -89,45 +95,58 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
 
     public boolean offer(ScheduledTick<T> tick) {
         if (this.lastIndexExclusive >= this.arr.length) {
-            //todo remove consumed elements first
-            this.arr = copyArray(this.arr, HashCommon.nextPowerOfTwo(this.arr.length + 1));
+            if (this.firstIndex > 0) {
+                this.compact();
+            } else {
+                this.arr = copyArray(this.arr, HashCommon.nextPowerOfTwo(this.arr.length + 1));
+            }
         }
-        if (tick.subTickOrder() <= this.currentMaxSubTickOrder) {
-            //Set to unsorted instead of slowing down the insertion
-            //This is rare but may happen in bulk
-            //Sorting later needs O(n*log(n)) time, but it only needs to happen when unordered insertion needs to happen
-            //Therefore it is better than n times log(n) time of the PriorityQueue that happens on ordered insertion too
-            ScheduledTick<T> firstTick = this.isSorted ? this.size() > 0 ? this.arr[this.firstIndex] : null : this.unsortedPeekResult;
-            this.isSorted = false;
-            this.unsortedPeekResult = firstTick == null || tick.subTickOrder() < firstTick.subTickOrder() ? tick : firstTick;
+        if (tick.subTickOrder() > this.maxSeenSubtickOrder) {
+            //No need to sort again if append at end is in correct order
+            this.maxSeenSubtickOrder = tick.subTickOrder();
         } else {
-            this.currentMaxSubTickOrder = tick.subTickOrder();
+            if (this.isSorted) {
+                //Set to unsorted instead of slowing down the insertion
+                //This is rare but may happen in bulk
+                //Sorting later needs O(n*log(n)) time, but it only needs to happen with unordered insertions
+                this.unsortedPeekResult = this.isEmpty() ? null : this.arr[this.firstIndex];
+                this.isSorted = false;
+            }
+            if (this.unsortedPeekResult == null || tick.subTickOrder() < this.unsortedPeekResult.subTickOrder()) {
+                this.unsortedPeekResult = tick;
+            }
         }
         this.arr[this.lastIndexExclusive++] = tick;
         return true;
     }
 
+    @Override
     public int size() {
         return this.lastIndexExclusive - this.firstIndex;
     }
 
-    private void handleCompaction(int size) {
-        // Only compact the array if it is less than 50% filled
-        if (this.arr.length > INITIAL_CAPACITY && size < this.arr.length / 2) {
+    @Override
+    public boolean isEmpty() {
+        return this.lastIndexExclusive <= this.firstIndex;
+    }
+
+    private void compact() {
+        int size = this.size();
+        if (this.firstIndex != 0 || this.lastIndexExclusive != size) {
+            System.arraycopy(this.arr, this.firstIndex, this.arr, 0, size);
+            Arrays.fill(this.arr, size, this.arr.length, null);
+            this.firstIndex = 0;
+            this.lastIndexExclusive = size;
+        } else if (this.arr.length > INITIAL_CAPACITY && size < this.arr.length / 2) {
+            // Only compact the array if it is less than 50% filled
             this.arr = copyArray(this.arr, size);
         } else {
             // Fill the unused array elements with nulls to release our references to the elements in it
             Arrays.fill(this.arr, size, this.arr.length, null);
         }
 
-        this.firstIndex = 0;
-        this.lastIndexExclusive = size;
-
-        if (size == 0 || !this.isSorted) {
-            this.currentMaxSubTickOrder = Long.MIN_VALUE;
-        } else {
-            ScheduledTick<T> tick = this.arr[size - 1];
-            this.currentMaxSubTickOrder = tick == null ? Long.MIN_VALUE : tick.subTickOrder();
+        if (this.isEmpty()) {
+            this.initEmpty();
         }
     }
 
@@ -135,38 +154,55 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         if (this.isSorted) {
             return;
         }
-        this.removeNullsAndConsumed();
         Arrays.sort(this.arr, this.firstIndex, this.lastIndexExclusive, COMPARATOR);
+
+        //As removal doesn't lower maxSeenSubtickOrder, updating it here may be beneficial
+        this.maxSeenSubtickOrder = this.isEmpty() ? Long.MIN_VALUE : this.arr[this.lastIndexExclusive - 1].subTickOrder();
+
         this.isSorted = true;
         this.unsortedPeekResult = null;
     }
 
-    public void removeNullsAndConsumed() {
-        int src = this.firstIndex;
-        int dst = 0;
-        while (src < this.lastIndexExclusive) {
-            ScheduledTick<T> orderedTick = this.arr[src];
-            if (orderedTick != null) {
-                this.arr[dst] = orderedTick;
-                dst++;
-            }
-            src++;
-        }
-        this.handleCompaction(dst);
-    }
-
-    public ScheduledTick<T> getTickAtIndex(int index) {
+    private ScheduledTick<T> getTickAtIndex(int index) {
         if (!this.isSorted) {
             throw new IllegalStateException("Unexpected access on unsorted queue!");
         }
         return this.arr[index];
     }
 
-    public void setTickAtIndex(int index, ScheduledTick<T> tick) {
-        if (!this.isSorted) {
-            throw new IllegalStateException("Unexpected access on unsorted queue!");
+    @Override
+    public boolean removeIf(@NonNull Predicate<? super ScheduledTick<T>> filter) {
+        Objects.requireNonNull(filter);
+        int size = this.size();
+        int src = this.firstIndex;
+        int dst = 0;
+
+        ScheduledTick<T> minTick = null;
+        try {
+            while (src < this.lastIndexExclusive) {
+                ScheduledTick<T> orderedTick = this.arr[src];
+                if (!filter.test(orderedTick)) {
+                    if (!this.isSorted && (minTick == null || orderedTick.subTickOrder() < minTick.subTickOrder())) {
+                        minTick = orderedTick;
+                    }
+                    this.arr[dst] = orderedTick;
+                    dst++;
+                }
+                src++;
+            }
+        } catch (Exception e) {
+            this.fixCollectionOnThrowDuringRemoveIf(src, dst, minTick);
+            throw e;
         }
-        this.arr[index] = tick;
+
+        if (!this.isSorted) {
+            this.unsortedPeekResult = minTick;
+        }
+        this.firstIndex = 0;
+        this.lastIndexExclusive = dst;
+
+        this.compact();
+        return size != this.size();
     }
 
     @SuppressWarnings("unchecked")
@@ -180,8 +216,82 @@ public class OrderedTickQueue<T> extends AbstractQueue<ScheduledTick<T>> {
         return copy;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return this.lastIndexExclusive <= this.firstIndex;
+    private void fixCollectionOnThrowDuringRemoveIf(int remainingStart, int dst, ScheduledTick<T> processedMinTick) {
+        //In case the predicate throws an exception, the queue must not become inconsistent.
+        // The remaining elements are not filtered.
+        int remainingCount = this.lastIndexExclusive - remainingStart;
+        System.arraycopy(this.arr, remainingStart, this.arr, dst, remainingCount);
+        this.firstIndex = 0;
+        this.lastIndexExclusive = dst + remainingCount;
+
+        //Finish searching for the minimum tick avoid an inconsistent peek result
+        if (!this.isSorted) {
+            ScheduledTick<T> minTick = processedMinTick;
+            for (int i = dst; i < this.lastIndexExclusive; i++) {
+                ScheduledTick<T> orderedTick = this.arr[i];
+                if (minTick == null || orderedTick.subTickOrder() < minTick.subTickOrder()) {
+                    minTick = orderedTick;
+                }
+            }
+            this.unsortedPeekResult = minTick;
+        }
+
+        if (this.isEmpty()) {
+            this.initEmpty();
+        }
+    }
+
+    public void checkConsistency() {
+        //noinspection ConstantValue
+        if (this.size() < 0) {
+            throw new IllegalStateException("Queue size is" + this.size() + " but should be >= 0!");
+        }
+        for (int i = 0; i < this.firstIndex; i++) {
+            if (this.arr[i] != null) {
+                throw new IllegalStateException("Array elements before firstIndex should be null, but found non-null element " + this.arr[i] + " at index " + i);
+            }
+        }
+        for (int i = this.lastIndexExclusive; i < this.arr.length; i++) {
+            if (this.arr[i] != null) {
+                throw new IllegalStateException("Array elements after lastIndexExclusive should be null, but found non-null element " + this.arr[i] + " at index " + i);
+            }
+        }
+        for (int i = this.firstIndex; i < this.lastIndexExclusive; i++) {
+            if (this.arr[i] == null) {
+                throw new IllegalStateException("Array elements between firstIndex and lastIndexExclusive should not be null, but found null element at index " + i);
+            }
+            if (this.arr[i].subTickOrder() > this.maxSeenSubtickOrder) {
+                throw new IllegalStateException("Elements should not have a subTickOrder higher than maxSeenSubtickOrder, but found element " + this.arr[i] + " at index " + i);
+            }
+        }
+
+        if (this.isSorted) {
+            if (this.unsortedPeekResult != null) {
+                throw new IllegalStateException("Unsorted peek result should be null when sorted, but found " + this.unsortedPeekResult);
+            }
+            ScheduledTick<T> prev = null;
+            for (int i = this.firstIndex + 1; i < this.lastIndexExclusive; i++) {
+                ScheduledTick<T> tick = this.arr[i];
+                if (prev != null && tick.subTickOrder() < prev.subTickOrder()) {
+                    throw new IllegalStateException("Queue is not sorted, found element " + tick + " at index " + i + " with subTickOrder " + tick.subTickOrder() + " after element " + prev + " with subTickOrder " + prev.subTickOrder());
+                }
+                prev = tick;
+            }
+
+        } else {
+            if (this.unsortedPeekResult == null) {
+                throw new IllegalStateException("Unsorted peek result should not be null when unsorted!");
+            }
+            ScheduledTick<T> minTick = null;
+            for (int i = this.firstIndex; i < this.lastIndexExclusive; i++) {
+                ScheduledTick<T> tick = this.arr[i];
+                if (minTick == null || tick.subTickOrder() < minTick.subTickOrder()) {
+                    minTick = tick;
+                }
+            }
+            if (minTick != this.unsortedPeekResult) {
+                throw new IllegalStateException("Unsorted peek result is not the minimum tick, expected " + minTick + " but found " + this.unsortedPeekResult);
+            }
+        }
     }
 }

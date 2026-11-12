@@ -51,7 +51,7 @@ public class LevelChunkTicksMixin<T> {
     private Queue<ScheduledTick<T>> tickQueue;
 
     @Inject(
-            method = {"<init>()V", "<init>(Ljava/util/List;)V"},
+            method = { "<init>()V", "<init>(Ljava/util/List;)V" },
             at = @At("RETURN")
     )
     private void reinit(CallbackInfo ci) {
@@ -191,21 +191,17 @@ public class LevelChunkTicksMixin<T> {
      */
     @Overwrite
     public void removeIf(Predicate<ScheduledTick<T>> predicate) {
+        Predicate<ScheduledTick<T>> removalPredicate = nextTick -> {
+            if (predicate.test(nextTick)) {
+                this.allTicks.remove(tickToInt(nextTick.pos(), nextTick.type()));
+                return true;
+            }
+            return false;
+        };
+
         for (ObjectIterator<OrderedTickQueue<T>> tickQueueIterator = this.tickQueuesByTimeAndPriority.values().iterator(); tickQueueIterator.hasNext(); ) {
             OrderedTickQueue<T> nextTickQueue = tickQueueIterator.next();
-            nextTickQueue.sort();
-            boolean removed = false;
-            for (int i = 0; i < nextTickQueue.size(); i++) {
-                ScheduledTick<T> nextTick = nextTickQueue.getTickAtIndex(i);
-                if (predicate.test(nextTick)) {
-                    nextTickQueue.setTickAtIndex(i, null);
-                    this.allTicks.remove(tickToInt(nextTick.pos(), nextTick.type()));
-                    removed = true;
-                }
-            }
-            if (removed) {
-                nextTickQueue.removeNullsAndConsumed();
-            }
+            nextTickQueue.removeIf(removalPredicate);
             if (nextTickQueue.isEmpty()) {
                 tickQueueIterator.remove();
             }
