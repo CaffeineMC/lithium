@@ -4,7 +4,6 @@ plugins {
     id("java")
     id("net.fabricmc.fabric-loom") version ("1.17-SNAPSHOT") apply (false)
     id("me.modmuss50.mod-publish-plugin") version ("2.1.0") apply (false)
-
 }
 
 // Fabric: https://fabricmc.net/develop/
@@ -22,7 +21,7 @@ val FABRIC_LOADER_VERSION by extra { "0.19.5" }
 val FABRIC_API_VERSION by extra { "0.160.5+26.3" }
 
 // https://semver.org/
-val MOD_VERSION by extra { "0.26.3" }
+val MOD_VERSION by extra { "0.26.4" }
 
 // This value can be set to null to disable Parchment.
 val PARCHMENT_VERSION by extra { null }
