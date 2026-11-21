@@ -45,12 +45,21 @@ public class WorldHelper {
      * @param collidingEntity the entity that is searching for the colliding entities
      * @return iterator of entities with collision boxes
      */
-    public static List<Entity> getEntitiesForCollision(EntityGetter entityView, AABB box, Entity collidingEntity) {
+    public static List<Entity> getEntitiesForCollision(EntityGetter entityView, AABB box, @Nullable Entity collidingEntity) {
+        return getEntitiesForCollision(entityView, box, collidingEntity, null);
+    }
+
+    /**
+     * Uses the caller's empty scratch list on the class-group path. The vanilla fallback supplies its own list;
+     * callers must consume the returned list, not assume that the scratch list was populated.
+     */
+    public static List<Entity> getEntitiesForCollision(EntityGetter entityView, AABB box, @Nullable Entity collidingEntity, @Nullable ArrayList<Entity> scratch) {
         if (!CUSTOM_TYPE_FILTERABLE_LIST_DISABLED && entityView instanceof Level world && (collidingEntity == null || !CollisionEntityClassGroups.CUSTOM_COLLIDE_LIKE_MINECART_BOAT_WINDCHARGE.contains(collidingEntity))) {
             EntitySectionStorage<Entity> cache = getEntityCacheOrNull(world);
             if (cache != null) {
                 Profiler.get().incrementCounter("getEntities");
-                return getEntitiesOfEntityGroupPlusDragonPieces(world, cache, collidingEntity, CollisionEntityClassGroups.BOAT_SHULKER_LIKE_COLLISION, box, null);
+                return collectEntitiesOfEntityGroup(world, cache, collidingEntity, CollisionEntityClassGroups.BOAT_SHULKER_LIKE_COLLISION,
+                        box, null, scratch != null ? scratch : new ArrayList<>());
             }
         }
         //use vanilla code in case the shortcut is not applicable
@@ -96,7 +105,15 @@ public class WorldHelper {
     }
 
     public static ArrayList<Entity> getEntitiesOfEntityGroupWithoutDragonPieces(EntitySectionStorage<Entity> cache, Entity excludedEntity, EntityClassGroup entityClassGroup, AABB box, Predicate<? super Entity> entityFilter) {
-        ArrayList<Entity> entities = new ArrayList<>();
+        return collectEntitiesOfEntityGroup(null, cache, excludedEntity, entityClassGroup, box, entityFilter, new ArrayList<>());
+    }
+
+    public static List<Entity> getEntitiesOfEntityGroupPlusDragonPieces(Level level, EntitySectionStorage<Entity> cache, Entity excludedEntity, EntityClassGroup entityClassGroup, AABB box, Predicate<? super Entity> entityFilter) {
+        return collectEntitiesOfEntityGroup(level, cache, excludedEntity, entityClassGroup, box, entityFilter, new ArrayList<>());
+    }
+
+    private static ArrayList<Entity> collectEntitiesOfEntityGroup(@Nullable Level multipartLevel, EntitySectionStorage<Entity> cache, Entity excludedEntity,
+                                                                  EntityClassGroup entityClassGroup, AABB box, Predicate<? super Entity> entityFilter, ArrayList<Entity> entities) {
         cache.forEachAccessibleNonEmptySection(box, section -> {
             //noinspection unchecked
             ClassInstanceMultiMap<Entity> allEntities = ((EntitySectionAccessor<Entity>) section).getCollection();
@@ -111,13 +128,8 @@ public class WorldHelper {
             }
             return Continuation.CONTINUE;
         });
-        return entities;
-    }
-
-    public static List<Entity> getEntitiesOfEntityGroupPlusDragonPieces(Level level, EntitySectionStorage<Entity> cache, Entity excludedEntity, EntityClassGroup entityClassGroup, AABB box, Predicate<? super Entity> entityFilter) {
-        ArrayList<Entity> entities = getEntitiesOfEntityGroupWithoutDragonPieces(cache, excludedEntity, entityClassGroup, box, entityFilter);
-        if (!level.dragonParts().isEmpty()) {
-            PlatformEntityAccess.INSTANCE.addEnderDragonParts(level, excludedEntity, box, entityFilter == null ? EntitySelector.NO_SPECTATORS : entityFilter, entities);
+        if (multipartLevel != null && !multipartLevel.dragonParts().isEmpty()) {
+            PlatformEntityAccess.INSTANCE.addEnderDragonParts(multipartLevel, excludedEntity, box, entityFilter == null ? EntitySelector.NO_SPECTATORS : entityFilter, entities);
         }
         return entities;
     }

@@ -31,6 +31,13 @@ import java.util.List;
 
 public class LithiumEntityCollisions {
     public static final double EPSILON = 1.0E-7D;
+    private static final int MAX_CACHED_CANDIDATES = 256;
+    private static final ThreadLocal<CollisionCandidateBuffer> COLLISION_CANDIDATES = ThreadLocal.withInitial(CollisionCandidateBuffer::new);
+
+    private static final class CollisionCandidateBuffer {
+        // Null while a query owns the list, including while a mod's collision callback is running.
+        private @Nullable ArrayList<Entity> available = new ArrayList<>();
+    }
 
     /**
      * [VanillaCopy] CollisionView#getBlockCollisions(Entity, Box)
@@ -57,40 +64,62 @@ public class LithiumEntityCollisions {
      * @return True if the box (possibly that of an entity's) collided with any other hard entities
      */
     public static boolean doesBoxCollideWithHardEntities(EntityGetter view, @Nullable Entity entity, AABB box) {
-        if (isBoxEmpty(box)) {
-            return false;
-        }
-
-        return getEntityWorldBorderCollisionIterable(view, entity, box.inflate(EPSILON), false).iterator().hasNext();
+        return collectHardEntityCollisions(view, entity, box, null);
     }
 
     /**
-     * Collects entity and world border collision boxes.
+     * Appends the collision shapes of hard entities to the caller's list.
      */
     public static void appendEntityCollisions(List<VoxelShape> entityCollisions, Level world, Entity entity, AABB box) {
+        collectHardEntityCollisions(world, entity, box, entityCollisions);
+    }
+
+    /** With no output list, stops at the first hard collision instead of appending shapes. */
+    private static boolean collectHardEntityCollisions(EntityGetter view, @Nullable Entity entity, AABB box, @Nullable List<VoxelShape> shapes) {
         if (isBoxEmpty(box)) {
-            return;
+            return false;
         }
-        AABB expandedBox = box.inflate(EPSILON);
-
-        for(Entity otherEntity : WorldHelper.getEntitiesForCollision(world, expandedBox, entity)) {
-            /*
-             * {@link Entity#isCollidable()} returns false by default, designed to be overridden by
-             * entities whose collisions should be "hard" (boats and shulkers, for now).
-             *
-             * {@link Entity#collidesWith(Entity)} only allows hard collisions if the calling entity is not riding
-             * otherEntity as a vehicle.
-             */
-            if (entity == null) {
-                if (!otherEntity.canBeCollidedWith(null)) {
-                    continue;
+        CollisionCandidateBuffer buffer = COLLISION_CANDIDATES.get();
+        ArrayList<Entity> scratch = buffer.available;
+        buffer.available = null;
+        try {
+            // Finish the section and multipart query before running collision callbacks: they can move or remove entities.
+            List<Entity> candidates = WorldHelper.getEntitiesForCollision(view, box.inflate(EPSILON), entity, scratch);
+            if (shapes != null && candidates != scratch) {
+                // A custom EntityGetter can return its own list. Keep its iteration semantics for the append path.
+                for (Entity other : candidates) {
+                    if (canCollide(entity, other)) {
+                        shapes.add(Shapes.create(other.getBoundingBox()));
+                    }
                 }
-            } else if (!entity.canCollideWith(otherEntity)) {
-                continue;
+            } else {
+                for (int i = 0; i < candidates.size(); i++) {
+                    Entity other = candidates.get(i);
+                    if (canCollide(entity, other)) {
+                        // The original iterator called both hooks even when the caller only asked hasNext().
+                        VoxelShape shape = Shapes.create(other.getBoundingBox());
+                        if (shapes == null) {
+                            return true;
+                        }
+                        shapes.add(shape);
+                    }
+                }
             }
-
-            entityCollisions.add(Shapes.create(otherEntity.getBoundingBox()));
+            return false;
+        } finally {
+            if (scratch != null) {
+                if (scratch.size() > MAX_CACHED_CANDIDATES) {
+                    COLLISION_CANDIDATES.remove();
+                } else {
+                    scratch.clear();
+                    buffer.available = scratch;
+                }
+            }
         }
+    }
+
+    private static boolean canCollide(@Nullable Entity entity, Entity other) {
+        return entity == null ? other.canBeCollidedWith(null) : entity.canCollideWith(other);
     }
 
     public static void appendWorldBorderCollision(ArrayList<VoxelShape> worldBorderCollisions, Entity entity, AABB box) {
@@ -147,18 +176,7 @@ public class LithiumEntityCollisions {
 
                             otherEntity = list.get(this.index);
                             if (this.index >= nextFilterIndex) {
-                                /*
-                                 * {@link Entity#isCollidable()} returns false by default, designed to be overridden by
-                                 * entities whose collisions should be "hard" (boats and shulkers, for now).
-                                 *
-                                 * {@link Entity#collidesWith(Entity)} only allows hard collisions if the calling entity is not riding
-                                 * otherEntity as a vehicle.
-                                 */
-                                if (entity == null) {
-                                    if (!otherEntity.canBeCollidedWith(null)) {
-                                        otherEntity = null;
-                                    }
-                                } else if (!entity.canCollideWith(otherEntity)) {
+                                if (!canCollide(entity, otherEntity)) {
                                     otherEntity = null;
                                 }
                                 nextFilterIndex++;
