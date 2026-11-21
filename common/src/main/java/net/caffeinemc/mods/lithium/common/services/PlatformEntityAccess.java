@@ -10,6 +10,7 @@ import java.util.function.Predicate;
 public interface PlatformEntityAccess {
     PlatformEntityAccess INSTANCE = Services.load(PlatformEntityAccess.class);
 
+    /** Append matching parts in platform order. The caller owns the list and may reuse it after the query. */
     void addEnderDragonParts(Level level, Entity excludedEntity, AABB box, Predicate<? super Entity> entityFilter, ArrayList<Entity> entities);
 
 }

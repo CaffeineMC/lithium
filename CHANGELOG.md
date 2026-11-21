@@ -8,6 +8,9 @@ Lithium _LithiumVersion_ for Minecraft _MCVersion_ fixes several issues.
 
 Make sure to take a backup of your world before using the mod and please report any bugs and mod compatibility issues at the [issue tracker](https://github.com/CaffeineMC/lithium-fabric/issues). You can check the [description of each optimization](https://github.com/CaffeineMC/lithium/blob/_ReleaseTag_/lithium-mixin-config.md) and how to disable it when encountering a problem.
 
+## Improvements
+- Reuse temporary entity candidates for hard collision queries without sharing lists returned to callers.
+
 ## Fixes
 - Avoid null entries in OrderedTickQueue and more improvements
 - Fix explosions not creating fire when exploding air
